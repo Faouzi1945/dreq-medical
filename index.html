@@ -392,14 +392,40 @@
         </p>
       </div>
 
-      <div id="adminNotice" class="dashboard-card hidden">
-        <h2>Administration</h2>
-        <p class="muted">
-          Ton compte est reconnu comme administrateur.
-          Les outils de gestion des étudiants et des QCM seront ajoutés
-          après validation des règles de sécurité de la base de données.
-        </p>
-      </div>
+     
+
+<div id="adminNotice" class="dashboard-card hidden">
+  <h2>Administration DREQ</h2>
+
+  <p class="muted">
+    Gestion des comptes étudiants et de leurs accès.
+  </p>
+
+  <button id="refreshStudentsButton" type="button">
+    Actualiser les comptes
+  </button>
+
+  <div id="adminMessage" role="status"></div>
+
+  <div style="overflow-x:auto; margin-top:20px">
+    <table style="width:100%; border-collapse:collapse; text-align:left">
+      <thead>
+        <tr>
+          <th style="padding:12px">Étudiant</th>
+          <th style="padding:12px">Statut</th>
+          <th style="padding:12px">Action</th>
+        </tr>
+      </thead>
+      <tbody id="studentsTableBody">
+        <tr>
+          <td colspan="3" style="padding:12px">
+            Clique sur « Actualiser les comptes ».
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
 
       <div id="studentNotice" class="dashboard-card hidden">
         <h2>Mes révisions</h2>
@@ -551,6 +577,114 @@
       );
     }
 
+async function loadStudents() {
+  const tbody = $("studentsTableBody");
+  const message = $("adminMessage");
+  const refreshButton = $("refreshStudentsButton");
+
+  tbody.replaceChildren();
+  const loadingRow = document.createElement("tr");
+  const loadingCell = document.createElement("td");
+  loadingCell.colSpan = 3;
+  loadingCell.textContent = "Chargement des étudiants…";
+  loadingCell.style.padding = "12px";
+  loadingRow.appendChild(loadingCell);
+  tbody.appendChild(loadingRow);
+
+  refreshButton.disabled = true;
+
+  try {
+    const { data: students, error } = await supabaseClient
+      .from("profiles")
+      .select("id, full_name, role, created_at, access_enabled")
+      .eq("role", "student")
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+
+    tbody.replaceChildren();
+
+    if (!students || students.length === 0) {
+      const row = document.createElement("tr");
+      const cell = document.createElement("td");
+      cell.colSpan = 3;
+      cell.textContent = "Aucun étudiant trouvé.";
+      cell.style.padding = "12px";
+      row.appendChild(cell);
+      tbody.appendChild(row);
+    } else {
+      for (const student of students) {
+        const row = document.createElement("tr");
+        const nameCell = document.createElement("td");
+        const statusCell = document.createElement("td");
+        const actionCell = document.createElement("td");
+        const button = document.createElement("button");
+
+        nameCell.textContent = student.full_name || "Étudiant";
+        statusCell.textContent = student.access_enabled
+          ? "Accès activé"
+          : "Accès désactivé";
+
+        button.type = "button";
+        button.textContent = student.access_enabled
+          ? "Désactiver"
+          : "Activer";
+
+        button.addEventListener("click", async () => {
+          button.disabled = true;
+          showMessage(message, "Mise à jour de l'accès…");
+
+          try {
+            const { data, error } = await supabaseClient.rpc(
+              "admin_set_student_access",
+              {
+                target_student: student.id,
+                new_access: !student.access_enabled
+              }
+            );
+
+            if (error) throw error;
+
+            if (data !== true) {
+              throw new Error("Étudiant introuvable ou accès non modifié.");
+            }
+
+            showMessage(message, "Accès mis à jour.", "success");
+            await loadStudents();
+          } catch (error) {
+            showMessage(
+              message,
+              "Erreur : " + friendlyError(error),
+              "error"
+            );
+            button.disabled = false;
+          }
+        });
+
+        for (const cell of [nameCell, statusCell, actionCell]) {
+          cell.style.padding = "12px";
+          cell.style.borderBottom = "1px solid #ddd";
+        }
+
+        actionCell.appendChild(button);
+        row.append(nameCell, statusCell, actionCell);
+        tbody.appendChild(row);
+      }
+    }
+
+    showMessage(message, "Liste des étudiants actualisée.", "success");
+  } catch (error) {
+    tbody.replaceChildren();
+    showMessage(
+      message,
+      "Impossible de charger les étudiants : " + friendlyError(error),
+      "error"
+    );
+  } finally {
+    refreshButton.disabled = false;
+  }
+}
+
     async function init() {
       if (!window.supabase) {
         showMessage(
@@ -657,6 +791,10 @@
         $("loginPassword").value = "";
         showLanding();
         showMessage($("authMessage"), "Tu es déconnecté.", "success");
+      });
+      
+      $("refreshStudentsButton").addEventListener("click", () => {
+  loadStudents();
       });
 
       $("themeButton").addEventListener("click", () => {
