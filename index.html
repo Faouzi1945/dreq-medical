@@ -766,13 +766,13 @@ async function loadStudents() {
               "success"
             );
             await showDashboard(data.user);
-          } else {
+         } else {
             showMessage(
-              $("authMessage"),
-              "Demande de création envoyée. Vérifie ton e-mail pour confirmer le compte, puis connecte-toi.",
+            $("authMessage"),
+              "Compte créé. Connecte-toi avec ton e-mail et ton mot de passe.",
               "success"
-            );
-          }
+           );
+        }
         } catch (error) {
           showMessage($("authMessage"), friendlyError(error), "error");
         } finally {
