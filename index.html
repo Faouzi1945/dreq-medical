@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -361,338 +360,455 @@ footer{padding:32px 0 40px;border-top:1px solid var(--border);color:var(--muted)
       </p>
     </div>
   </section>
-
-  <section class="section auth-section container" id="compte">
+    <section class="section container auth-section" id="compte">
     <div class="section-head">
-      <div class="eyebrow">Rejoins DREQ</div>
-      <h2>Prêt·e à commencer ?</h2>
-      <p>Connecte-toi à ton compte ou crée ton espace étudiant en quelques étapes.</p>
+      <div class="eyebrow">Ton espace personnel</div>
+      <h2>Bienvenue sur DREQ</h2>
+      <p>Connecte-toi à ton compte ou crée ton espace étudiant.</p>
     </div>
 
     <div class="auth-grid">
-      <section class="panel">
+      <form class="panel" id="loginForm">
         <h3>Connexion</h3>
-        <p class="panel-intro">Accède à ton espace étudiant ou administrateur.</p>
-        <form id="loginForm">
-          <div class="field">
-            <label for="loginEmail">Adresse e-mail</label>
-            <input id="loginEmail" type="email" autocomplete="username" placeholder="toi@exemple.com" required>
-          </div>
-          <div class="field">
-            <label for="loginPassword">Mot de passe</label>
-            <input id="loginPassword" type="password" autocomplete="current-password" placeholder="Ton mot de passe" required>
-          </div>
-          <button id="loginButton" class="btn btn-primary" type="submit">Se connecter</button>
-        </form>
-      </section>
+        <p class="panel-intro">Tu as déjà un compte ? Connecte-toi ici.</p>
 
-      <section class="panel">
+        <div class="field">
+          <label for="loginEmail">Adresse e-mail</label>
+          <input id="loginEmail" type="email" autocomplete="email"
+            placeholder="nom@exemple.com" required>
+        </div>
+
+        <div class="field">
+          <label for="loginPassword">Mot de passe</label>
+          <input id="loginPassword" type="password"
+            autocomplete="current-password" placeholder="Ton mot de passe" required>
+        </div>
+
+        <button class="btn btn-primary" id="loginButton" type="submit">
+          Se connecter →
+        </button>
+
+        <p style="text-align:center;margin:17px 0 0;font-size:12px;color:var(--muted)">
+          Mot de passe oublié ?
+          <a href="#" id="forgotPasswordLink"
+             style="color:var(--accent);font-weight:800">
+            Contacter l’administration
+          </a>
+        </p>
+      </form>
+
+      <form class="panel" id="signupForm">
         <h3>Créer un compte</h3>
-        <p class="panel-intro">Crée ton compte. Les accès aux semestres seront gérés par l’administration.</p>
-        <form id="signupForm">
-          <div class="field">
-            <label for="signupName">Nom complet</label>
-            <input id="signupName" type="text" autocomplete="name" placeholder="Nom et prénom" maxlength="100" required>
-          </div>
-          <div class="field">
-            <label for="signupEmail">Adresse e-mail</label>
-            <input id="signupEmail" type="email" autocomplete="email" placeholder="toi@exemple.com" required>
-          </div>
-          <div class="field">
-            <label for="signupPassword">Mot de passe</label>
-            <input id="signupPassword" type="password" autocomplete="new-password" minlength="8" placeholder="8 caractères minimum" required>
-          </div>
-          <button id="signupButton" class="btn btn-primary" type="submit">Créer mon compte</button>
-        </form>
-      </section>
-    </div>
-    <div id="authMessage" class="message" role="status" aria-live="polite"></div>
-  </section>
+        <p class="panel-intro">Inscris-toi pour demander ton accès étudiant.</p>
 
-  <section id="dashboard" class="container dashboard hidden">
-    <div class="dashboard-top">
-      <div>
-        <div class="eyebrow">Espace personnel</div>
-        <h2 id="dashboardTitle">Bienvenue sur DREQ</h2>
-        <p id="accountEmail" class="muted"></p>
+        <div class="field">
+          <label for="signupName">Nom complet</label>
+          <input id="signupName" type="text" autocomplete="name"
+            placeholder="Ton nom complet" required>
+        </div>
+
+        <div class="field">
+          <label for="signupEmail">Adresse e-mail</label>
+          <input id="signupEmail" type="email" autocomplete="email"
+            placeholder="nom@exemple.com" required>
+        </div>
+
+        <div class="field">
+          <label for="signupPassword">Mot de passe</label>
+          <input id="signupPassword" type="password"
+            autocomplete="new-password" minlength="6"
+            placeholder="6 caractères minimum" required>
+        </div>
+
+        <button class="btn btn-secondary" id="signupButton" type="submit">
+          Créer mon compte
+        </button>
+      </form>
+    </div>
+
+    <div class="message" id="appMessage" role="status" aria-live="polite"></div>
+
+    <div class="dashboard hidden" id="studentDashboard">
+      <div class="dashboard-top">
+        <div>
+          <div class="eyebrow">Espace personnel</div>
+          <h2 style="font-size:27px">Bonjour !</h2>
+          <p class="muted" id="studentEmail"></p>
+        </div>
+        <span class="status" id="studentAccessStatus">Vérification de l’accès</span>
       </div>
-      <span id="accountStatus" class="status">Vérification du compte…</span>
+
+      <div class="dashboard-card">
+        <h3>Ton accès DREQ</h3>
+        <p class="muted" id="studentAccessMessage">
+          Les informations de ton compte sont en cours de vérification.
+        </p>
+      </div>
+
+      <button class="btn btn-secondary" id="logoutButton" type="button">
+        Se déconnecter
+      </button>
     </div>
 
-    <p id="dashboardDescription" class="muted">Chargement des informations de ton compte…</p>
+    <div class="dashboard hidden" id="adminDashboard">
+      <div class="dashboard-top">
+        <div>
+          <div class="eyebrow">Administration</div>
+          <h2 style="font-size:27px">Gestion des comptes</h2>
+          <p class="muted">Active ou désactive l’accès des étudiants après vérification.</p>
+        </div>
+        <span class="status">Administrateur</span>
+      </div>
 
-    <div id="adminNotice" class="dashboard-card hidden">
-      <h3>Administration DREQ</h3>
-      <p class="muted">Gestion globale de l’accès aux comptes étudiants.</p>
-      <button id="refreshStudentsButton" class="btn btn-secondary" type="button">Actualiser les comptes</button>
-      <div id="adminMessage" class="message" role="status" aria-live="polite"></div>
+      <button class="btn btn-secondary" id="refreshAccountsButton" type="button">
+        Actualiser les comptes
+      </button>
+
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Étudiant</th><th>Statut</th><th>Action</th></tr></thead>
-          <tbody id="studentsTableBody">
+          <thead>
+            <tr>
+              <th>Adresse e-mail</th>
+              <th>Accès</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="accountsTableBody">
             <tr><td colspan="3">Clique sur « Actualiser les comptes ».</td></tr>
           </tbody>
         </table>
       </div>
     </div>
-
-    <div id="studentNotice" class="dashboard-card hidden">
-      <h3>Mes révisions</h3>
-      <p id="studentAccessText" class="muted">Les accès aux contenus sont gérés par l’administration.</p>
-    </div>
-
-    <div id="dashboardMessage" class="message show" role="status" aria-live="polite"></div>
-    <button id="logoutButton" class="btn btn-secondary" type="button" style="margin-top:20px">Se déconnecter</button>
   </section>
 </main>
 
 <footer>
   <div class="container footer-inner">
-    <span>© <span id="year"></span> DREQ · Medical Learning</span>
-    <span>Apprendre aujourd’hui, soigner demain.</span>
+    <span>© 2026 DREQ Medical Learning</span>
+    <span>Réviser avec méthode, progresser avec confiance.</span>
   </div>
 </footer>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-"use strict";
+<script type="module">
+import { createClient } from
+  "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
-/* Configuration du projet Supabase existant. */
+/*
+  CONFIGURATION SUPABASE
+  Utilise l'URL et la clé publique de TON projet Supabase.
+  Ne mets jamais une clé service_role dans le code public.
+*/
 const SUPABASE_URL = "https://ttrunryfmwtantycmkor.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_pv7eoks18qa19-DBSVxBKg_jE8m_OVI";
+const SUPABASE_ANON_KEY = "COLLE_ICI_TA_CLE_PUBLIQUE_SUPABASE";
+
+/*
+  Remplace le numéro ci-dessous par ton numéro WhatsApp,
+  avec l'indicatif du pays, sans + ni espaces.
+  Exemple de format : 2126XXXXXXXX
+*/
+const ADMIN_WHATSAPP_NUMBER = "212774756134";
+
+/*
+  Mets ici l'adresse e-mail exacte du compte administrateur.
+*/
+const ADMIN_EMAIL = "alialiamal2024@gmail.com";
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const $ = (id) => document.getElementById(id);
-let supabaseClient = null;
 
-function showMessage(element, message, type = "") {
-  if (!element) return;
-  element.textContent = message;
-  element.className = "message show" + (type ? " " + type : "");
+function showMessage(message, type = "") {
+  const box = $("appMessage");
+  box.textContent = message;
+  box.className = "message show" + (type ? " " + type : "");
+  box.scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
 
 function friendlyError(error) {
-  const message = error?.message || "Une erreur inconnue est survenue.";
+  const message = error?.message || "Une erreur est survenue.";
 
-  if (/invalid login credentials/i.test(message))
-    return "Adresse e-mail ou mot de passe incorrect.";
-
-  if (/email not confirmed/i.test(message))
-    return "Adresse e-mail non confirmée. Vérifie les paramètres de confirmation dans Supabase.";
-
-  if (/user already registered/i.test(message))
-    return "Cette adresse possède déjà un compte. Essaie de te connecter.";
-
-  if (/password should be at least/i.test(message))
-    return "Choisis un mot de passe plus long.";
-
-  if (/failed to fetch|networkerror|load failed/i.test(message))
-    return "Connexion au serveur impossible. Vérifie Internet et les paramètres Supabase.";
-
-  if (/row-level security|permission denied|not allowed/i.test(message))
-    return "Accès refusé par les règles de sécurité Supabase. Vérifie les politiques RLS.";
+  if (/invalid login credentials/i.test(message)) {
+    return "E-mail ou mot de passe incorrect.";
+  }
+  if (/email not confirmed/i.test(message)) {
+    return "Ton e-mail n’est pas encore confirmé. Vérifie ta boîte de réception.";
+  }
+  if (/user already registered/i.test(message)) {
+    return "Cette adresse e-mail possède déjà un compte. Essaie de te connecter.";
+  }
+  if (/password should be at least/i.test(message)) {
+    return "Le mot de passe doit contenir au moins 6 caractères.";
+  }
+  if (/failed to fetch|network/i.test(message)) {
+    return "Connexion impossible. Vérifie ta connexion Internet et réessaie.";
+  }
 
   return message;
 }
 
-function setBusy(button, busy, busyLabel) {
-  if (!button) return;
+function setLoading(button, loading, originalText) {
+  button.disabled = loading;
+  button.textContent = loading ? "Veuillez patienter…" : originalText;
+}
 
-  if (busy) {
-    if (!button.dataset.originalLabel)
-      button.dataset.originalLabel = button.textContent;
+function openWhatsApp() {
+  if (!/^\d{10,15}$/.test(ADMIN_WHATSAPP_NUMBER) ||
+      ADMIN_WHATSAPP_NUMBER.includes("X")) {
+    showMessage(
+      "Le numéro WhatsApp de l’administration doit d’abord être configuré dans le code.",
+      "error"
+    );
+    return;
+  }
 
-    button.disabled = true;
-    button.textContent = busyLabel;
-  } else {
-    button.disabled = false;
-    button.textContent = button.dataset.originalLabel || button.textContent;
+  const email = $("loginEmail").value.trim();
+  const message =
+    "Bonjour, j’ai besoin d’aide pour accéder à mon compte DREQ." +
+    (email ? " Mon e-mail : " + email : "") +
+    " Merci.";
+
+  const url =
+    "https://wa.me/" + ADMIN_WHATSAPP_NUMBER +
+    "?text=" + encodeURIComponent(message);
+
+  window.open(url, "_blank", "noopener,noreferrer");
+}
+
+$("forgotPasswordLink").addEventListener("click", (event) => {
+  event.preventDefault();
+  openWhatsApp();
+});
+
+document.querySelectorAll("[data-focus='signup']").forEach((link) => {
+  link.addEventListener("click", () => {
+    setTimeout(() => $("signupName").focus(), 100);
+  });
+});
+
+async function loadUserInterface(user) {
+  $("loginForm").classList.remove("hidden");
+  $("signupForm").classList.remove("hidden");
+  $("studentDashboard").classList.add("hidden");
+  $("adminDashboard").classList.add("hidden");
+
+  if (!user) return;
+
+  $("loginForm").classList.add("hidden");
+  $("signupForm").classList.add("hidden");
+  $("studentEmail").textContent = user.email || "";
+
+  const isAdmin =
+    (user.email || "").toLowerCase() === ADMIN_EMAIL.toLowerCase();
+
+  if (isAdmin) {
+    $("adminDashboard").classList.remove("hidden");
+    $("studentDashboard").classList.add("hidden");
+    showMessage("Connexion réussie en tant qu’administrateur.", "success");
+    await loadAccounts();
+    return;
+  }
+
+  $("studentDashboard").classList.remove("hidden");
+  $("studentAccessStatus").textContent = "Vérification de l’accès";
+
+  try {
+    const { data: profile, error } = await supabase
+      .from("profiles")
+      .select("role, access_enabled")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (error) throw error;
+
+    if (!profile) {
+      $("studentAccessStatus").textContent = "Profil en attente";
+      $("studentAccessMessage").textContent =
+        "Ton compte est créé, mais ton profil n’a pas encore été configuré. Contacte l’administration si nécessaire.";
+      return;
+    }
+
+    if (profile.role === "admin") {
+      $("adminDashboard").classList.remove("hidden");
+      $("studentDashboard").classList.add("hidden");
+      await loadAccounts();
+      return;
+    }
+
+    if (profile.access_enabled === true) {
+      $("studentAccessStatus").textContent = "Accès activé";
+      $("studentAccessMessage").textContent =
+        "Ton accès est activé. Les contenus disponibles dépendent des modules configurés sur la plateforme.";
+    } else {
+      $("studentAccessStatus").textContent = "Accès en attente";
+      $("studentAccessMessage").textContent =
+        "Ton compte est bien connecté, mais l’accès étudiant n’est pas encore activé par l’administration.";
+    }
+  } catch (error) {
+    $("studentAccessStatus").textContent = "Vérification impossible";
+    $("studentAccessMessage").textContent =
+      "Connexion réussie, mais impossible de lire le profil : " +
+      friendlyError(error);
   }
 }
 
-function showLanding() {
-  $("dashboard").classList.add("hidden");
+$("loginForm").addEventListener("submit", async (event) => {
+  event.preventDefault();
 
-  document.querySelectorAll("#accueil > section").forEach(section => {
-    if (section.id !== "dashboard")
-      section.classList.remove("hidden");
-  });
+  const button = $("loginButton");
+  setLoading(button, true, "Se connecter →");
 
-  $("compte").scrollIntoView({behavior:"smooth", block:"start"});
-}
+  try {
+    const email = $("loginEmail").value.trim();
+    const password = $("loginPassword").value;
 
-async function showDashboard(user) {
-  document.querySelectorAll("#accueil > section").forEach(section => {
-    if (section.id !== "dashboard")
-      section.classList.add("hidden");
-  });
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
 
-  $("dashboard").classList.remove("hidden");
-  $("dashboard").scrollIntoView({behavior:"smooth", block:"start"});
-  $("accountEmail").textContent = user.email || "";
-  $("accountStatus").textContent = "Connecté · vérification du profil…";
-  $("adminNotice").classList.add("hidden");
-  $("studentNotice").classList.add("hidden");
+    if (error) throw error;
 
-  showMessage($("dashboardMessage"), "Chargement du profil…");
+    showMessage("Connexion réussie.", "success");
+    await loadUserInterface(data.user);
+  } catch (error) {
+    showMessage(friendlyError(error), "error");
+  } finally {
+    setLoading(button, false, "Se connecter →");
+  }
+});
 
-  const {data: profile, error} = await supabaseClient
-    .from("profiles")
-    .select("role, access_enabled")
-    .eq("id", user.id)
-    .maybeSingle();
+$("signupForm").addEventListener("submit", async (event) => {
+  event.preventDefault();
+
+  const button = $("signupButton");
+  setLoading(button, true, "Créer mon compte");
+
+  try {
+    const name = $("signupName").value.trim();
+    const email = $("signupEmail").value.trim();
+    const password = $("signupPassword").value;
+
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { full_name: name }
+      }
+    });
+
+    if (error) throw error;
+
+    if (data.session && data.user) {
+      showMessage("Compte créé avec succès.", "success");
+      await loadUserInterface(data.user);
+    } else {
+      showMessage(
+        "Compte créé. Vérifie ta boîte e-mail pour confirmer ton adresse avant de te connecter.",
+        "success"
+      );
+    }
+  } catch (error) {
+    showMessage(friendlyError(error), "error");
+  } finally {
+    setLoading(button, false, "Créer mon compte");
+  }
+});
+
+$("logoutButton").addEventListener("click", async () => {
+  const { error } = await supabase.auth.signOut();
 
   if (error) {
-    $("accountStatus").textContent = "Connexion réussie";
-    $("dashboardTitle").textContent = "Profil indisponible";
-    $("dashboardDescription").textContent =
-      "Le compte est connecté, mais le profil n’a pas pu être lu.";
-
-    showMessage(
-      $("dashboardMessage"),
-      "Erreur de lecture du profil : " + friendlyError(error),
-      "error"
-    );
+    showMessage(friendlyError(error), "error");
     return;
   }
 
-  if (!profile) {
-    $("accountStatus").textContent = "Profil en attente";
-    $("dashboardTitle").textContent = "Profil non disponible";
-    $("dashboardDescription").textContent =
-      "Aucun profil n’a été trouvé dans la table profiles. Vérifie le déclencheur de création du profil dans Supabase.";
+  $("studentDashboard").classList.add("hidden");
+  $("adminDashboard").classList.add("hidden");
+  $("loginForm").classList.remove("hidden");
+  $("signupForm").classList.remove("hidden");
+  showMessage("Tu es déconnecté(e).", "success");
+});
 
-    showMessage(
-      $("dashboardMessage"),
-      "Le profil doit être créé ou réparé dans Supabase.",
-      "error"
-    );
-    return;
-  }
-
-  if (profile.role === "admin") {
-    $("accountStatus").textContent = "Administrateur";
-    $("dashboardTitle").textContent = "Espace administrateur";
-    $("dashboardDescription").textContent =
-      "Connecté en tant qu’administrateur. Tu peux actualiser la liste des comptes étudiants et gérer leur accès global.";
-
-    $("adminNotice").classList.remove("hidden");
-
-    showMessage(
-      $("dashboardMessage"),
-      "Connexion administrateur réussie.",
-      "success"
-    );
-    return;
-  }
-
-  $("accountStatus").textContent =
-    profile.access_enabled ? "Compte activé" : "Accès en attente";
-
-  $("dashboardTitle").textContent = "Espace étudiant";
-
-  $("dashboardDescription").textContent = profile.access_enabled
-    ? "Ton compte est activé. Les accès aux semestres restent soumis aux autorisations configurées."
-    : "Ton compte est créé. L’administration doit activer ton accès après vérification.";
-
-  $("studentNotice").classList.remove("hidden");
-
-  $("studentAccessText").textContent = profile.access_enabled
-    ? "Ton compte est activé. Le contenu pédagogique sera disponible au fur et à mesure de sa mise en place."
-    : "Ton compte est en attente d’activation par l’administration.";
-
-  showMessage(
-    $("dashboardMessage"),
-    profile.access_enabled ? "Compte activé." : "Compte créé, en attente d’activation.",
-    profile.access_enabled ? "success" : ""
-  );
-}
-
-async function loadStudents() {
-  const tbody = $("studentsTableBody");
-  const button = $("refreshStudentsButton");
-  const message = $("adminMessage");
-
-  button.disabled = true;
+async function loadAccounts() {
+  const tbody = $("accountsTableBody");
   tbody.replaceChildren();
 
   const loadingRow = document.createElement("tr");
   const loadingCell = document.createElement("td");
   loadingCell.colSpan = 3;
-  loadingCell.textContent = "Chargement des étudiants…";
+  loadingCell.textContent = "Chargement des comptes…";
   loadingRow.appendChild(loadingCell);
   tbody.appendChild(loadingRow);
 
+  /*
+    La liste dépend des règles de sécurité RLS et des droits
+    configurés dans Supabase. Si la requête est refusée,
+    vérifie les politiques de sécurité avant de continuer.
+  */
   try {
-    const {data: students, error} = await supabaseClient
+    const { data, error } = await supabase
       .from("profiles")
-      .select("id, full_name, role, created_at, access_enabled")
-      .eq("role", "student")
-      .order("created_at", {ascending:false});
+      .select("id, email, access_enabled")
+      .order("email", { ascending: true });
 
     if (error) throw error;
 
     tbody.replaceChildren();
 
-    if (!students || students.length === 0) {
+    if (!data || data.length === 0) {
       const row = document.createElement("tr");
       const cell = document.createElement("td");
       cell.colSpan = 3;
-      cell.textContent = "Aucun étudiant trouvé.";
+      cell.textContent = "Aucun compte visible avec les autorisations actuelles.";
       row.appendChild(cell);
       tbody.appendChild(row);
-    } else {
-      for (const student of students) {
-        const row = document.createElement("tr");
-        const nameCell = document.createElement("td");
-        const statusCell = document.createElement("td");
-        const actionCell = document.createElement("td");
-        const action = document.createElement("button");
-
-        nameCell.textContent = student.full_name || "Étudiant";
-        statusCell.textContent = student.access_enabled
-          ? "Accès activé"
-          : "Accès désactivé";
-
-        action.type = "button";
-        action.className = "table-action";
-        action.textContent = student.access_enabled
-          ? "Désactiver"
-          : "Activer";
-
-        action.addEventListener("click", async () => {
-          action.disabled = true;
-          showMessage(message, "Mise à jour de l’accès…");
-
-          try {
-            const {data, error} = await supabaseClient.rpc(
-              "admin_set_student_access",
-              {
-                target_student: student.id,
-                new_access: !student.access_enabled
-              }
-            );
-
-            if (error) throw error;
-
-            if (data !== true)
-              throw new Error("L’accès n’a pas été confirmé. Vérifie la fonction RPC.");
-
-            showMessage(message, "Accès mis à jour.", "success");
-            await loadStudents();
-          } catch (err) {
-            showMessage(message, "Erreur : " + friendlyError(err), "error");
-            action.disabled = false;
-          }
-        });
-
-        actionCell.appendChild(action);
-        row.append(nameCell, statusCell, actionCell);
-        tbody.appendChild(row);
-      }
+      return;
     }
 
-    showMessage(message, "Liste des comptes actualisée.", "success");
+    data.forEach((profile) => {
+      const row = document.createElement("tr");
 
+      const emailCell = document.createElement("td");
+      emailCell.textContent = profile.email || "E-mail non disponible";
+
+      const accessCell = document.createElement("td");
+      accessCell.textContent =
+        profile.access_enabled === true ? "Activé" : "Désactivé";
+
+      const actionCell = document.createElement("td");
+      const actionButton = document.createElement("button");
+      actionButton.type = "button";
+      actionButton.className = "table-action";
+      actionButton.textContent =
+        profile.access_enabled === true ? "Désactiver" : "Activer";
+
+      actionButton.addEventListener("click", async () => {
+        actionButton.disabled = true;
+
+        try {
+          const { error: updateError } = await supabase
+            .from("profiles")
+            .update({ access_enabled: profile.access_enabled !== true })
+            .eq("id", profile.id);
+
+          if (updateError) throw updateError;
+
+          showMessage("La demande de modification a été envoyée.", "success");
+          await loadAccounts();
+        } catch (error) {
+          showMessage(
+            "Modification refusée par Supabase : " + friendlyError(error) +
+            " Vérifie les politiques RLS et les droits d’administration.",
+            "error"
+          );
+          actionButton.disabled = false;
+        }
+      });
+
+      actionCell.appendChild(actionButton);
+      row.append(emailCell, accessCell, actionCell);
+      tbody.appendChild(row);
+    });
   } catch (error) {
     tbody.replaceChildren();
 
@@ -700,154 +816,30 @@ async function loadStudents() {
     const cell = document.createElement("td");
     cell.colSpan = 3;
     cell.textContent =
-      "Impossible de charger les étudiants : " + friendlyError(error);
-
+      "Impossible de charger les comptes : " + friendlyError(error);
     row.appendChild(cell);
     tbody.appendChild(row);
 
     showMessage(
-      message,
-      "Vérifie les autorisations RLS de la table profiles.",
+      "La liste des comptes n’est pas accessible. Vérifie les politiques de sécurité Supabase.",
       "error"
     );
-  } finally {
-    button.disabled = false;
   }
 }
 
-async function init() {
-  $("year").textContent = new Date().getFullYear();
+$("refreshAccountsButton").addEventListener("click", loadAccounts);
 
-  if (!window.supabase) {
-    showMessage(
-      $("authMessage"),
-      "Le service de connexion n’a pas pu être chargé. Actualise la page et vérifie ta connexion Internet.",
-      "error"
-    );
-    return;
+supabase.auth.onAuthStateChange((_event, session) => {
+  if (session?.user) {
+    loadUserInterface(session.user);
   }
+});
 
-  if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
-    showMessage(
-      $("authMessage"),
-      "La configuration Supabase est incomplète.",
-      "error"
-    );
-    return;
-  }
+const { data: { session } } = await supabase.auth.getSession();
 
-  supabaseClient = window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_PUBLISHABLE_KEY
-  );
-
-  $("loginForm").addEventListener("submit", async (event) => {
-    event.preventDefault();
-
-    const button = $("loginButton");
-    setBusy(button, true, "Connexion…");
-
-    try {
-      const {data, error} = await supabaseClient.auth.signInWithPassword({
-        email: $("loginEmail").value.trim(),
-        password: $("loginPassword").value
-      });
-
-      if (error) throw error;
-      if (!data.user) throw new Error("Aucun utilisateur retourné par Supabase.");
-
-      showMessage($("authMessage"), "Connexion réussie.", "success");
-      await showDashboard(data.user);
-
-    } catch (error) {
-      showMessage($("authMessage"), friendlyError(error), "error");
-    } finally {
-      setBusy(button, false, "Se connecter");
-    }
-  });
-
-  $("signupForm").addEventListener("submit", async (event) => {
-    event.preventDefault();
-
-    const button = $("signupButton");
-    setBusy(button, true, "Création du compte…");
-
-    try {
-      const fullName = $("signupName").value.trim();
-      const email = $("signupEmail").value.trim();
-      const password = $("signupPassword").value;
-
-      if (fullName.length < 2)
-        throw new Error("Saisis ton nom complet.");
-
-      if (password.length < 8)
-        throw new Error("Le mot de passe doit contenir au moins 8 caractères.");
-
-      const {data, error} = await supabaseClient.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {full_name:fullName}
-        }
-      });
-
-      if (error) throw error;
-
-      if (data.session && data.user) {
-        showMessage(
-          $("authMessage"),
-          "Compte créé. Chargement de ton espace…",
-          "success"
-        );
-        await showDashboard(data.user);
-      } else {
-        showMessage(
-          $("authMessage"),
-          "Demande de création envoyée. Si la confirmation e-mail est activée dans Supabase, confirme ton adresse avant de te connecter.",
-          "success"
-        );
-      }
-
-    } catch (error) {
-      showMessage($("authMessage"), friendlyError(error), "error");
-    } finally {
-      setBusy(button, false, "Créer mon compte");
-    }
-  });
-
-  $("logoutButton").addEventListener("click", async () => {
-    const {error} = await supabaseClient.auth.signOut();
-
-    if (error) {
-      showMessage($("dashboardMessage"), friendlyError(error), "error");
-      return;
-    }
-
-    $("loginPassword").value = "";
-    showLanding();
-    showMessage($("authMessage"), "Tu es déconnecté.", "success");
-  });
-
-  $("refreshStudentsButton").addEventListener("click", loadStudents);
-
-  document.querySelectorAll("[data-focus='signup']").forEach(link => {
-    link.addEventListener("click", () => {
-      setTimeout(() => $("signupName").focus({preventScroll:true}), 250);
-    });
-  });
-
-  const {data:{session}, error} = await supabaseClient.auth.getSession();
-
-  if (error) {
-    showMessage($("authMessage"), friendlyError(error), "error");
-    return;
-  }
-
-  if (session?.user)
-    await showDashboard(session.user);
+if (session?.user) {
+  await loadUserInterface(session.user);
 }
-
-init();
 </script>
 </body>
 </html>
