@@ -1,604 +1,633 @@
 
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#0b1726">
-  <title>DREQ — Medical Learning</title>
-  <meta name="description" content="DREQ, plateforme de révision médicale et de QCM pour étudiants en médecine.">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#091827">
+<meta name="description" content="DREQ Medical Learning : QCM, révisions et suivi pour les étudiants en médecine.">
+<title>DREQ — Medical Learning</title>
 
-  <style>
-    :root {
-      --bg: #0b1726;
-      --panel: #122238;
-      --panel2: #172b43;
-      --text: #f2f7fb;
-      --muted: #a7b8ca;
-      --accent: #40d6bd;
-      --border: #2a4058;
-      --danger: #ff8b91;
-    }
-
-    * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      min-height: 100vh;
-      background: var(--bg);
-      color: var(--text);
-      font-family: Inter, system-ui, -apple-system, sans-serif;
-    }
-
-    button, input { font: inherit; }
-
-    button { cursor: pointer; }
-
-    .topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      padding: 18px 6%;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-size: 23px;
-      font-weight: 850;
-      letter-spacing: 1px;
-    }
-
-    .logo {
-      display: grid;
-      place-items: center;
-      width: 42px;
-      height: 42px;
-      border-radius: 13px;
-      background: var(--accent);
-      color: #08211f;
-      font-size: 25px;
-    }
-
-    .brand small {
-      display: block;
-      margin-top: 2px;
-      color: var(--muted);
-      font-size: 10px;
-      font-weight: 500;
-      letter-spacing: 2px;
-    }
-
-    .theme-btn, .secondary-btn {
-      padding: 10px 14px;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      background: var(--panel);
-      color: var(--text);
-    }
-
-    main {
-      width: min(1080px, 92%);
-      margin: 42px auto;
-    }
-
-    .hero {
-      display: grid;
-      grid-template-columns: 1.15fr .85fr;
-      align-items: center;
-      gap: 40px;
-      margin-bottom: 38px;
-    }
-
-    .eyebrow {
-      color: var(--accent);
-      font-size: 12px;
-      font-weight: 800;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-    }
-
-    h1 {
-      margin: 14px 0;
-      font-size: clamp(34px, 5vw, 54px);
-      line-height: 1.1;
-      letter-spacing: -1.5px;
-    }
-
-    .intro {
-      max-width: 540px;
-      color: var(--muted);
-      line-height: 1.8;
-    }
-
-    .hero-art {
-      display: grid;
-      place-items: center;
-      min-height: 230px;
-      border: 1px solid var(--border);
-      border-radius: 25px;
-      background: radial-gradient(circle at center, #1a4a59 0%, #122238 58%, #0e1c2e 100%);
-    }
-
-    .medical-symbol {
-      color: var(--accent);
-      font-size: 110px;
-      font-weight: 300;
-    }
-
-    .panel {
-      padding: 28px;
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      background: var(--panel);
-      box-shadow: 0 18px 50px #00000018;
-    }
-
-    .auth-layout {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 24px;
-      align-items: start;
-    }
-
-    h2 { margin: 0 0 8px; font-size: 23px; }
-
-    .muted {
-      color: var(--muted);
-      font-size: 14px;
-      line-height: 1.7;
-    }
-
-    .field { margin-top: 17px; }
-
-    label {
-      display: block;
-      margin-bottom: 8px;
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    input {
-      width: 100%;
-      padding: 13px 14px;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      outline: none;
-      background: #0b1726;
-      color: var(--text);
-    }
-
-    input:focus { border-color: var(--accent); }
-
-    .primary-btn {
-      width: 100%;
-      margin-top: 20px;
-      padding: 14px;
-      border: 0;
-      border-radius: 10px;
-      background: var(--accent);
-      color: #09211f;
-      font-weight: 800;
-    }
-
-    .primary-btn:disabled {
-      cursor: wait;
-      opacity: .6;
-    }
-
-    .message {
-      display: none;
-      margin-top: 18px;
-      padding: 13px;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      font-size: 13px;
-      line-height: 1.7;
-      overflow-wrap: anywhere;
-    }
-
-    .message.show { display: block; }
-    .message.error { color: var(--danger); }
-    .message.success { color: var(--accent); }
-
-    .feature-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 15px;
-      margin-top: 28px;
-    }
-
-    .feature {
-      padding: 20px;
-      border: 1px solid var(--border);
-      border-radius: 15px;
-      background: var(--panel);
-    }
-
-    .feature-icon { font-size: 25px; }
-    .feature h3 { margin: 12px 0 7px; font-size: 16px; }
-    .feature p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.7; }
-
-    .status {
-      display: inline-block;
-      padding: 7px 11px;
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      color: var(--accent);
-      font-size: 12px;
-    }
-
-    .dashboard-card {
-      margin-top: 20px;
-      padding: 20px;
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      background: var(--panel2);
-    }
-
-    .hidden { display: none !important; }
-
-    footer {
-      padding: 28px 15px;
-      color: var(--muted);
-      text-align: center;
-      font-size: 12px;
-    }
-
-    body.light {
-      --bg: #f2f7fa;
-      --panel: #ffffff;
-      --panel2: #edf5f8;
-      --text: #132638;
-      --muted: #5c7083;
-      --accent: #087e78;
-      --border: #d7e2e9;
-    }
-
-    body.light input { background: #fff; }
-
-    @media (max-width: 760px) {
-      main { margin-top: 28px; }
-      .hero, .auth-layout { grid-template-columns: 1fr; gap: 20px; }
-      .hero-art { min-height: 150px; }
-      .medical-symbol { font-size: 80px; }
-      .feature-grid { grid-template-columns: 1fr; }
-      .panel { padding: 21px; }
-      .topbar { padding: 14px 4%; }
-    }
-  </style>
+<style>
+:root {
+  --bg:#071523;
+  --panel:#10243a;
+  --panel2:#132b43;
+  --text:#f4f8fc;
+  --muted:#a9bbcc;
+  --accent:#38d9c0;
+  --accent2:#18b6a7;
+  --border:rgba(170,205,222,.16);
+  --danger:#ff9ca5;
+  --success:#63e3b6;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  min-height:100vh;
+  background:radial-gradient(ellipse at 80% 0%,#10374a 0,transparent 34%),var(--bg);
+  color:var(--text);
+  font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+a{color:inherit;text-decoration:none}
+button,input{font:inherit}
+button{cursor:pointer}
+button:disabled{opacity:.6;cursor:wait}
+.container{width:min(1160px,92%);margin:auto}
+.topbar{
+  position:sticky;top:0;z-index:20;
+  background:rgba(7,21,35,.9);
+  backdrop-filter:blur(18px);
+  border-bottom:1px solid var(--border)
+}
+.nav{
+  min-height:78px;display:flex;align-items:center;
+  justify-content:space-between;gap:24px
+}
+.brand{display:flex;align-items:center;gap:11px}
+.brand-mark{width:47px;height:47px;flex:none}
+.brand-name{font-size:23px;font-weight:900;letter-spacing:1.3px}
+.brand-name span{color:var(--accent)}
+.brand-sub{
+  display:block;margin-top:5px;font-size:9px;
+  letter-spacing:2.5px;color:var(--muted);font-weight:700
+}
+.nav-links{display:flex;align-items:center;gap:25px;color:var(--muted);font-size:13px}
+.nav-links a:hover{color:var(--accent)}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;
+  gap:9px;padding:12px 18px;border:1px solid transparent;
+  border-radius:12px;font-weight:800;font-size:13px;
+  transition:transform .18s
+}
+.btn:hover{transform:translateY(-1px)}
+.btn-primary{
+  background:linear-gradient(135deg,var(--accent),#65eed3);
+  color:#05201f
+}
+.btn-secondary{border-color:var(--border);background:rgba(255,255,255,.035);color:var(--text)}
+.hero{
+  display:grid;grid-template-columns:1.08fr .92fr;
+  align-items:center;gap:55px;padding:82px 0 72px
+}
+.eyebrow{
+  display:inline-flex;align-items:center;gap:9px;
+  color:var(--accent);font-size:11px;font-weight:850;
+  letter-spacing:2px;text-transform:uppercase
+}
+.eyebrow:before{content:"";width:23px;height:2px;background:var(--accent)}
+h1{
+  font-size:clamp(39px,5.4vw,67px);line-height:1.04;
+  letter-spacing:-2.6px;margin:20px 0
+}
+h1 em{font-style:normal;color:var(--accent)}
+.lead{max-width:590px;color:var(--muted);font-size:16px;line-height:1.85}
+.hero-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:29px}
+.hero-note{display:flex;align-items:center;gap:10px;margin-top:25px;color:var(--muted);font-size:12px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--accent)}
+.hero-card{
+  padding:29px;border:1px solid var(--border);border-radius:28px;
+  background:linear-gradient(145deg,rgba(24,66,81,.8),rgba(15,35,56,.95));
+  box-shadow:0 22px 70px rgba(0,0,0,.24)
+}
+.mini-top{display:flex;justify-content:space-between;gap:10px;color:var(--muted);font-size:11px}
+.pill{border:1px solid rgba(56,217,192,.28);border-radius:30px;padding:7px;color:var(--accent);font-size:10px}
+.study-title{font-size:20px;font-weight:850;margin:24px 0 7px}
+.study-desc{font-size:12px;color:var(--muted);line-height:1.6}
+.question-box{padding:18px;border:1px solid var(--border);border-radius:16px;background:rgba(3,15,26,.35)}
+.question-label{font-size:10px;color:var(--accent);font-weight:800;letter-spacing:1.5px}
+.question-text{font-size:14px;line-height:1.6;font-weight:700}
+.answer{padding:11px;margin-top:8px;border:1px solid var(--border);border-radius:10px;font-size:11px;color:var(--muted)}
+.answer.correct{border-color:rgba(56,217,192,.5);color:#d8fff5;background:rgba(56,217,192,.08)}
+.progress-wrap{margin-top:20px}
+.progress-meta{display:flex;justify-content:space-between;color:var(--muted);font-size:11px;margin-bottom:9px}
+.progress{height:6px;background:rgba(255,255,255,.09);border-radius:20px;overflow:hidden}
+.progress span{display:block;width:72%;height:100%;background:linear-gradient(90deg,var(--accent2),var(--accent))}
+section.section{padding:67px 0}
+.section-head{text-align:center;max-width:680px;margin:0 auto 34px}
+.section-head .eyebrow:before{display:none}
+h2{font-size:clamp(28px,3.5vw,40px);letter-spacing:-1px;margin:12px 0}
+.section-head p{color:var(--muted);font-size:14px;line-height:1.8}
+.features{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.feature{
+  padding:24px;border:1px solid var(--border);border-radius:19px;
+  background:linear-gradient(145deg,rgba(17,39,61,.88),rgba(11,28,46,.88))
+}
+.feature-icon{
+  width:43px;height:43px;display:grid;place-items:center;
+  border-radius:13px;background:rgba(56,217,192,.1);
+  color:var(--accent);font-size:21px
+}
+.feature h3{margin:17px 0 8px;font-size:16px}
+.feature p{margin:0;color:var(--muted);font-size:13px;line-height:1.75}
+.feature small{display:inline-block;margin-top:13px;color:var(--accent);font-size:10px;font-weight:800}
+.pricing-section{background:linear-gradient(180deg,transparent,rgba(14,38,57,.58),transparent)}
+.pricing{display:grid;grid-template-columns:repeat(3,1fr);gap:17px}
+.price-card{
+  position:relative;padding:27px;border:1px solid var(--border);
+  border-radius:22px;background:rgba(15,35,55,.85);
+  display:flex;flex-direction:column
+}
+.price-card.featured{border-color:rgba(56,217,192,.65);background:linear-gradient(155deg,rgba(20,62,72,.92),rgba(13,32,50,.98))}
+.popular{
+  position:absolute;right:15px;top:15px;border-radius:30px;
+  background:var(--accent);color:#05201f;padding:6px 9px;
+  font-size:9px;font-weight:900
+}
+.price-name{font-size:12px;letter-spacing:1.5px;font-weight:900;color:var(--muted)}
+.price{font-size:39px;font-weight:900;margin:20px 0 5px}
+.price small{font-size:12px;color:var(--muted);font-weight:600}
+.price-desc{min-height:40px;color:var(--muted);font-size:12px;line-height:1.7}
+.price-card ul{list-style:none;padding:0;margin:18px 0 24px;flex:1}
+.price-card li{display:flex;gap:9px;margin:12px 0;color:#d6e3ee;font-size:12px;line-height:1.5}
+.price-card li:before{content:"✓";color:var(--accent);font-weight:900}
+.price-card .btn{width:100%;margin-top:auto}
+.price-footnote{text-align:center;color:var(--muted);font-size:11px;line-height:1.7;margin:20px auto 0;max-width:720px}
+.auth-section{padding-top:72px!important}
+.auth-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;max-width:900px;margin:auto}
+.panel{padding:28px;border:1px solid var(--border);border-radius:22px;background:rgba(15,35,55,.9)}
+.panel h3{margin:0 0 8px;font-size:21px}
+.panel-intro{color:var(--muted);font-size:12px;line-height:1.7}
+.field{margin-top:15px}
+label{display:block;margin-bottom:7px;color:var(--muted);font-size:12px;font-weight:650}
+input{
+  width:100%;padding:13px 14px;border:1px solid var(--border);
+  border-radius:11px;background:#081827;color:var(--text);outline:none
+}
+input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(56,217,192,.09)}
+.panel .btn{width:100%;margin-top:19px}
+.message{
+  display:none;margin:18px auto 0;max-width:900px;padding:13px 15px;
+  border:1px solid var(--border);border-radius:12px;font-size:12px;line-height:1.7
+}
+.message.show{display:block}
+.message.error{color:var(--danger);border-color:rgba(255,156,165,.3)}
+.message.success{color:var(--success);border-color:rgba(99,227,182,.3)}
+.dashboard{margin:52px auto;padding:28px;border:1px solid var(--border);border-radius:22px;background:var(--panel)}
+.dashboard-top{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap}
+.status{display:inline-block;padding:7px 11px;border:1px solid rgba(56,217,192,.3);border-radius:25px;color:var(--accent);font-size:11px}
+.dashboard-card{margin-top:20px;padding:20px;border:1px solid var(--border);border-radius:15px;background:var(--panel2)}
+.muted{color:var(--muted);font-size:13px;line-height:1.7}
+.table-wrap{overflow-x:auto;margin-top:18px}
+table{width:100%;border-collapse:collapse;text-align:left;font-size:12px}
+th,td{padding:13px;border-bottom:1px solid var(--border)}
+th{color:var(--muted)}
+.table-action{border:1px solid var(--border);border-radius:9px;padding:8px 11px;background:rgba(255,255,255,.05);color:var(--text)}
+.hidden{display:none!important}
+footer{padding:32px 0 40px;border-top:1px solid var(--border);color:var(--muted);font-size:11px}
+.footer-inner{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap}
+@media(max-width:850px){
+  .nav-links{gap:14px}
+  .hero{gap:28px;padding-top:58px}
+  .features{grid-template-columns:repeat(2,1fr)}
+  .pricing{grid-template-columns:1fr;max-width:520px;margin:auto}
+}
+@media(max-width:650px){
+  .nav{min-height:68px}
+  .nav-links a:not(.btn){display:none}
+  .brand-mark{width:41px;height:41px}
+  .brand-name{font-size:20px}
+  .nav-links .btn{padding:10px 12px;font-size:11px}
+  .hero{grid-template-columns:1fr;padding:49px 0 35px;gap:28px}
+  h1{letter-spacing:-1.6px}
+  .hero-card{padding:20px}
+  .features,.auth-grid{grid-template-columns:1fr}
+  section.section{padding:48px 0}
+  .panel,.dashboard{padding:21px}
+  .footer-inner{flex-direction:column}
+}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
 </head>
 
 <body>
-  <header class="topbar">
-    <div class="brand">
-      <div class="logo">+</div>
-      <div>
-        DREQ
-        <small>MEDICAL LEARNING</small>
+<header class="topbar">
+  <div class="container nav">
+    <a class="brand" href="#accueil" aria-label="DREQ, accueil">
+      <svg class="brand-mark" viewBox="0 0 64 64" role="img" aria-label="Logo DREQ">
+        <defs>
+          <linearGradient id="brandGradient" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#54efd0"/>
+            <stop offset="1" stop-color="#12a99f"/>
+          </linearGradient>
+        </defs>
+        <path d="M11 7h21a23 23 0 0 1 0 46H11V7Z" fill="url(#brandGradient)"/>
+        <path d="M21 17h11a13 13 0 0 1 0 26H21V17Z" fill="#0b1d30"/>
+        <path d="M14 26c-7 0-8 7-4 12l8 9c4 4 9 2 11-2l4-8c2-4 7-5 10-2 3 3 2 8-2 10l-7 4"
+          fill="none" stroke="#38d9c0" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="35" cy="50" r="4" fill="#38d9c0"/>
+      </svg>
+      <span>
+        <span class="brand-name">DRE<span>Q</span></span>
+        <span class="brand-sub">MEDICAL LEARNING</span>
+      </span>
+    </a>
+    <nav class="nav-links" aria-label="Navigation principale">
+      <a href="#fonctionnalites">Fonctionnalités</a>
+      <a href="#offres">Offres</a>
+      <a class="btn btn-primary" href="#compte">Commencer ↗</a>
+    </nav>
+  </div>
+</header>
+
+<main id="accueil">
+  <section class="container hero">
+    <div>
+      <div class="eyebrow">La révision médicale, autrement</div>
+      <h1>Prépare tes examens.<br><em>Progresse avec méthode.</em></h1>
+      <p class="lead">
+        DREQ rassemble tes entraînements QCM, tes corrections et tes révisions
+        dans un espace conçu pour accompagner les étudiants en médecine.
+      </p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="#compte">Créer mon compte →</a>
+        <a class="btn btn-secondary" href="#offres">Découvrir les offres</a>
+      </div>
+      <div class="hero-note"><span class="dot"></span> Une plateforme pensée pour réviser plus régulièrement.</div>
+    </div>
+
+    <div class="hero-card">
+      <div class="mini-top">
+        <span>APERÇU D'ENTRAÎNEMENT</span>
+        <span class="pill">● Mode révision</span>
+      </div>
+      <p class="study-title">Entraîne-toi à ton rythme</p>
+      <p class="study-desc">Des questions organisées pour t'aider à consolider tes connaissances.</p>
+      <div class="question-box">
+        <div class="question-label">Exemple de présentation</div>
+        <p class="question-text">Après une question, retrouve une correction claire pour mieux comprendre la réponse.</p>
+        <div class="answer correct">✓ Réponse et correction expliquées</div>
+        <div class="answer">B — Revoir les autres propositions</div>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-meta"><span>Progression illustrative</span><span>72 %</span></div>
+        <div class="progress"><span></span></div>
       </div>
     </div>
-    <button id="themeButton" class="theme-btn" type="button">
-      ☼ Thème
-    </button>
-  </header>
+  </section>
 
-  <main>
-    <section id="landing">
-      <div class="hero">
-        <div>
-          <div class="eyebrow">Your medical journey starts here</div>
-          <h1>Révise mieux.<br>Progresse chaque jour.</h1>
-          <p class="intro">
-            Une plateforme pensée pour les étudiants en médecine :
-            QCM, révisions structurées et suivi de progression,
-            dans un seul espace.
-          </p>
-        </div>
-        <div class="hero-art" aria-label="Symbole médical">
-          <div class="medical-symbol">✚</div>
-        </div>
+  <section class="section container" id="fonctionnalites">
+    <div class="section-head">
+      <div class="eyebrow">Un espace pour apprendre</div>
+      <h2>Tout pour mieux organiser tes révisions</h2>
+      <p>Un environnement clair pour travailler les cours, comprendre tes erreurs et avancer étape par étape.</p>
+    </div>
+    <div class="features">
+      <article class="feature">
+        <div class="feature-icon">▤</div>
+        <h3>QCM & QCU</h3>
+        <p>Entraîne-toi avec des questions et retrouve les corrections disponibles pour consolider tes connaissances.</p>
+      </article>
+      <article class="feature">
+        <div class="feature-icon">⌕</div>
+        <h3>Révisions structurées</h3>
+        <p>Organise les contenus par semestre, module et cours pour retrouver ce que tu dois travailler.</p>
+      </article>
+      <article class="feature">
+        <div class="feature-icon">↗</div>
+        <h3>Suivi de progression</h3>
+        <p>Retrouve ton statut de compte et avance vers les contenus autorisés pour ton accès.</p>
+      </article>
+      <article class="feature">
+        <div class="feature-icon">✦</div>
+        <h3>Outils d’aide par IA</h3>
+        <p>Des fonctions d’assistance aux révisions sont prévues dans l’évolution de DREQ.</p>
+        <small>Déploiement progressif</small>
+      </article>
+      <article class="feature">
+        <div class="feature-icon">◷</div>
+        <h3>Révision à ton rythme</h3>
+        <p>Travaille quand tu le souhaites et concentre tes efforts sur les notions à revoir.</p>
+      </article>
+      <article class="feature">
+        <div class="feature-icon">⌑</div>
+        <h3>Accès géré simplement</h3>
+        <p>L’administration active les accès après vérification, sans paiement intégré à l’application.</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="section pricing-section" id="offres">
+    <div class="container">
+      <div class="section-head">
+        <div class="eyebrow">Des tarifs simples</div>
+        <h2>Choisis l’offre qui te convient</h2>
+        <p>Commence gratuitement, puis demande l’activation de l’accès qui correspond à tes besoins.</p>
       </div>
 
-      <div class="auth-layout">
-        <section class="panel">
-          <h2>Connexion</h2>
-          <p class="muted">Accède à ton espace étudiant ou administrateur.</p>
-
-          <form id="loginForm">
-            <div class="field">
-              <label for="loginEmail">Adresse e-mail</label>
-              <input id="loginEmail" type="email" autocomplete="email"
-                placeholder="toi@exemple.com" required>
-            </div>
-            <div class="field">
-              <label for="loginPassword">Mot de passe</label>
-              <input id="loginPassword" type="password"
-                autocomplete="current-password" minlength="6"
-                placeholder="Ton mot de passe" required>
-            </div>
-            <button id="loginButton" class="primary-btn" type="submit">
-              Se connecter
-            </button>
-          </form>
-        </section>
-
-        <section class="panel">
-          <h2>Créer un compte</h2>
-          <p class="muted">
-            Crée ton compte étudiant. L'accès aux semestres sera accordé
-            séparément par l'administration.
-          </p>
-
-          <form id="signupForm">
-            <div class="field">
-              <label for="signupName">Nom complet</label>
-              <input id="signupName" type="text" autocomplete="name"
-                placeholder="Nom et prénom" maxlength="100" required>
-            </div>
-            <div class="field">
-              <label for="signupEmail">Adresse e-mail</label>
-              <input id="signupEmail" type="email" autocomplete="email"
-                placeholder="toi@exemple.com" required>
-            </div>
-            <div class="field">
-              <label for="signupPassword">Créer un mot de passe</label>
-              <input id="signupPassword" type="password"
-                autocomplete="new-password" minlength="8"
-                placeholder="8 caractères minimum" required>
-            </div>
-            <button id="signupButton" class="primary-btn" type="submit">
-              Créer mon compte
-            </button>
-          </form>
-        </section>
-      </div>
-
-      <div id="authMessage" class="message" role="status" aria-live="polite"></div>
-
-      <div class="feature-grid">
-        <article class="feature">
-          <div class="feature-icon">▤</div>
-          <h3>QCM & QCU</h3>
-          <p>Entraîne-toi et retrouve tes corrections et explications.</p>
+      <div class="pricing">
+        <article class="price-card">
+          <div class="price-name">Découverte</div>
+          <div class="price">0 DH</div>
+          <div class="price-desc">Pour découvrir DREQ avec un accès limité.</div>
+          <ul>
+            <li>Création de compte gratuite</li>
+            <li>Accès découverte limité</li>
+            <li>Découverte de l’espace étudiant</li>
+          </ul>
+          <a class="btn btn-secondary" href="#compte" data-focus="signup">Créer un compte gratuit</a>
         </article>
-        <article class="feature">
-          <div class="feature-icon">✦</div>
-          <h3>Révisions assistées par IA</h3>
-          <p>Une future fonctionnalité pour préparer des fiches à partir des cours.</p>
+
+        <article class="price-card">
+          <div class="price-name">Premium semestre</div>
+          <div class="price">130 DH <small>/ semestre</small></div>
+          <div class="price-desc">Pour se concentrer sur un semestre à la fois.</div>
+          <ul>
+            <li>Accès au semestre activé</li>
+            <li>Contenus et entraînements disponibles</li>
+            <li>Activation après vérification par l’administration</li>
+          </ul>
+          <a class="btn btn-secondary" href="#compte" data-focus="signup">Demander l’accès</a>
         </article>
-        <article class="feature">
-          <div class="feature-icon">◷</div>
-          <h3>Suivi personnel</h3>
-          <p>Retrouve tes tentatives et suis ta progression au fil du temps.</p>
+
+        <article class="price-card featured">
+          <span class="popular">Meilleure économie</span>
+          <div class="price-name">Premium année</div>
+          <div class="price">240 DH <small>/ année</small></div>
+          <div class="price-desc">Une formule annuelle plus avantageuse.</div>
+          <ul>
+            <li>Accès annuel selon les semestres activés</li>
+            <li>Contenus et entraînements disponibles</li>
+            <li>Économie de 20 DH par rapport à deux semestres</li>
+          </ul>
+          <a class="btn btn-primary" href="#compte" data-focus="signup">Choisir l’offre annuelle</a>
         </article>
       </div>
-    </section>
 
-    <section id="dashboard" class="panel hidden">
-      <div class="eyebrow">Espace personnel</div>
-      <h1 style="font-size:34px">Bienvenue sur DREQ</h1>
-      <p id="accountEmail" class="muted"></p>
-      <div id="accountStatus" class="status">Vérification du compte…</div>
+      <p class="price-footnote">
+        Le règlement se fait en dehors de DREQ, selon les instructions de l’administration.
+        La création d’un compte ne vaut pas activation automatique d’un accès Premium.
+      </p>
+    </div>
+  </section>
 
-      <div class="dashboard-card">
-        <h2 id="dashboardTitle">Espace étudiant</h2>
-        <p id="dashboardDescription" class="muted">
-          Chargement des informations de ton compte…
-        </p>
+  <section class="section auth-section container" id="compte">
+    <div class="section-head">
+      <div class="eyebrow">Rejoins DREQ</div>
+      <h2>Prêt·e à commencer ?</h2>
+      <p>Connecte-toi à ton compte ou crée ton espace étudiant en quelques étapes.</p>
+    </div>
+
+    <div class="auth-grid">
+      <section class="panel">
+        <h3>Connexion</h3>
+        <p class="panel-intro">Accède à ton espace étudiant ou administrateur.</p>
+        <form id="loginForm">
+          <div class="field">
+            <label for="loginEmail">Adresse e-mail</label>
+            <input id="loginEmail" type="email" autocomplete="username" placeholder="toi@exemple.com" required>
+          </div>
+          <div class="field">
+            <label for="loginPassword">Mot de passe</label>
+            <input id="loginPassword" type="password" autocomplete="current-password" placeholder="Ton mot de passe" required>
+          </div>
+          <button id="loginButton" class="btn btn-primary" type="submit">Se connecter</button>
+        </form>
+      </section>
+
+      <section class="panel">
+        <h3>Créer un compte</h3>
+        <p class="panel-intro">Crée ton compte. Les accès aux semestres seront gérés par l’administration.</p>
+        <form id="signupForm">
+          <div class="field">
+            <label for="signupName">Nom complet</label>
+            <input id="signupName" type="text" autocomplete="name" placeholder="Nom et prénom" maxlength="100" required>
+          </div>
+          <div class="field">
+            <label for="signupEmail">Adresse e-mail</label>
+            <input id="signupEmail" type="email" autocomplete="email" placeholder="toi@exemple.com" required>
+          </div>
+          <div class="field">
+            <label for="signupPassword">Mot de passe</label>
+            <input id="signupPassword" type="password" autocomplete="new-password" minlength="8" placeholder="8 caractères minimum" required>
+          </div>
+          <button id="signupButton" class="btn btn-primary" type="submit">Créer mon compte</button>
+        </form>
+      </section>
+    </div>
+    <div id="authMessage" class="message" role="status" aria-live="polite"></div>
+  </section>
+
+  <section id="dashboard" class="container dashboard hidden">
+    <div class="dashboard-top">
+      <div>
+        <div class="eyebrow">Espace personnel</div>
+        <h2 id="dashboardTitle">Bienvenue sur DREQ</h2>
+        <p id="accountEmail" class="muted"></p>
       </div>
+      <span id="accountStatus" class="status">Vérification du compte…</span>
+    </div>
 
-     
+    <p id="dashboardDescription" class="muted">Chargement des informations de ton compte…</p>
 
-<div id="adminNotice" class="dashboard-card hidden">
-  <h2>Administration DREQ</h2>
+    <div id="adminNotice" class="dashboard-card hidden">
+      <h3>Administration DREQ</h3>
+      <p class="muted">Gestion globale de l’accès aux comptes étudiants.</p>
+      <button id="refreshStudentsButton" class="btn btn-secondary" type="button">Actualiser les comptes</button>
+      <div id="adminMessage" class="message" role="status" aria-live="polite"></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Étudiant</th><th>Statut</th><th>Action</th></tr></thead>
+          <tbody id="studentsTableBody">
+            <tr><td colspan="3">Clique sur « Actualiser les comptes ».</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
 
-  <p class="muted">
-    Gestion des comptes étudiants et de leurs accès.
-  </p>
+    <div id="studentNotice" class="dashboard-card hidden">
+      <h3>Mes révisions</h3>
+      <p id="studentAccessText" class="muted">Les accès aux contenus sont gérés par l’administration.</p>
+    </div>
 
-  <button id="refreshStudentsButton" type="button">
-    Actualiser les comptes
-  </button>
+    <div id="dashboardMessage" class="message show" role="status" aria-live="polite"></div>
+    <button id="logoutButton" class="btn btn-secondary" type="button" style="margin-top:20px">Se déconnecter</button>
+  </section>
+</main>
 
-  <div id="adminMessage" role="status"></div>
-
-  <div style="overflow-x:auto; margin-top:20px">
-    <table style="width:100%; border-collapse:collapse; text-align:left">
-      <thead>
-        <tr>
-          <th style="padding:12px">Étudiant</th>
-          <th style="padding:12px">Statut</th>
-          <th style="padding:12px">Action</th>
-        </tr>
-      </thead>
-      <tbody id="studentsTableBody">
-        <tr>
-          <td colspan="3" style="padding:12px">
-            Clique sur « Actualiser les comptes ».
-          </td>
-        </tr>
-      </tbody>
-    </table>
+<footer>
+  <div class="container footer-inner">
+    <span>© <span id="year"></span> DREQ · Medical Learning</span>
+    <span>Apprendre aujourd’hui, soigner demain.</span>
   </div>
-</div>
+</footer>
 
-      <div id="studentNotice" class="dashboard-card hidden">
-        <h2>Mes révisions</h2>
-        <p class="muted">
-          Les modules et les QCM apparaîtront ici lorsque l'accès au semestre
-          sera activé par l'administration.
-        </p>
-      </div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+"use strict";
 
-      <div id="dashboardMessage" class="message show" role="status"></div>
-      <button id="logoutButton" class="primary-btn" type="button">
-        Se déconnecter
-      </button>
-    </section>
-  </main>
+/* Configuration du projet Supabase existant. */
+const SUPABASE_URL = "https://ttrunryfmwtantycmkor.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_pv7eoks18qa19-DBSVxBKg_jE8m_OVI";
 
-  <footer>
-    DREQ · Medical Learning · Plateforme indépendante de révision médicale
-  </footer>
+const $ = (id) => document.getElementById(id);
+let supabaseClient = null;
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script>
-    "use strict";
+function showMessage(element, message, type = "") {
+  if (!element) return;
+  element.textContent = message;
+  element.className = "message show" + (type ? " " + type : "");
+}
 
-    // URL du projet DREQ d'après le projet Supabase créé.
-    const SUPABASE_URL = "https://ttrunryfmwtantycmkor.supabase.co";
+function friendlyError(error) {
+  const message = error?.message || "Une erreur inconnue est survenue.";
 
-    // À remplacer par la clé publique publishable/anon du nouveau projet.
-    // Ne jamais mettre ici une clé secret ou service_role.
-    const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_pv7eoks18qa19-DBSVxBKg_jE8m_OVI";
-    const $ = (id) => document.getElementById(id);
-    let supabaseClient = null;
+  if (/invalid login credentials/i.test(message))
+    return "Adresse e-mail ou mot de passe incorrect.";
 
-    function showMessage(element, message, type = "") {
-      element.textContent = message;
-      element.className = "message show" + (type ? " " + type : "");
-    }
+  if (/email not confirmed/i.test(message))
+    return "Adresse e-mail non confirmée. Vérifie les paramètres de confirmation dans Supabase.";
 
-    function friendlyError(error) {
-      const message = error?.message || "Une erreur inconnue est survenue.";
+  if (/user already registered/i.test(message))
+    return "Cette adresse possède déjà un compte. Essaie de te connecter.";
 
-      if (/invalid login credentials/i.test(message)) {
-        return "E-mail ou mot de passe incorrect.";
-      }
-      if (/email not confirmed/i.test(message)) {
-        return "Confirme ton adresse e-mail depuis le message reçu, puis reconnecte-toi.";
-      }
-      if (/user already registered/i.test(message)) {
-        return "Cette adresse possède déjà un compte. Essaie de te connecter.";
-      }
-      if (/password should be at least/i.test(message)) {
-        return "Choisis un mot de passe plus long.";
-      }
-      if (/failed to fetch/i.test(message)) {
-        return "Connexion impossible au serveur. Vérifie ta connexion et les paramètres Supabase.";
-      }
+  if (/password should be at least/i.test(message))
+    return "Choisis un mot de passe plus long.";
 
-      return message;
-    }
+  if (/failed to fetch|networkerror|load failed/i.test(message))
+    return "Connexion au serveur impossible. Vérifie Internet et les paramètres Supabase.";
 
-    function setBusy(button, busy, label) {
-      if (busy) {
-        button.dataset.originalLabel = button.textContent;
-        button.disabled = true;
-        button.textContent = label;
-      } else {
-        button.disabled = false;
-        button.textContent = button.dataset.originalLabel || label;
-      }
-    }
+  if (/row-level security|permission denied|not allowed/i.test(message))
+    return "Accès refusé par les règles de sécurité Supabase. Vérifie les politiques RLS.";
 
-    function showLanding() {
-      $("landing").classList.remove("hidden");
-      $("dashboard").classList.add("hidden");
-    }
+  return message;
+}
 
-    async function showDashboard(user) {
-      $("landing").classList.add("hidden");
-      $("dashboard").classList.remove("hidden");
-      $("accountEmail").textContent = user.email || "";
-      $("accountStatus").textContent = "Connecté · Vérification du profil…";
-      $("adminNotice").classList.add("hidden");
-      $("studentNotice").classList.add("hidden");
-      showMessage($("dashboardMessage"), "Chargement du profil…");
+function setBusy(button, busy, busyLabel) {
+  if (!button) return;
 
-      const { data: profile, error } = await supabaseClient
-        .from("profiles")
-        .select("role, access_enabled")
-        .eq("id", user.id)
-        .maybeSingle();
+  if (busy) {
+    if (!button.dataset.originalLabel)
+      button.dataset.originalLabel = button.textContent;
 
-      if (error) {
-        $("accountStatus").textContent = "Connexion réussie";
-        showMessage(
-          $("dashboardMessage"),
-          "Ton compte est connecté, mais la lecture du profil a échoué : " +
-          friendlyError(error),
-          "error"
-        );
-        $("dashboardDescription").textContent =
-          "Le profil n'a pas pu être chargé. Vérifie les règles de sécurité de Supabase.";
-        return;
-      }
+    button.disabled = true;
+    button.textContent = busyLabel;
+  } else {
+    button.disabled = false;
+    button.textContent = button.dataset.originalLabel || button.textContent;
+  }
+}
 
-      if (!profile) {
-        $("accountStatus").textContent = "Profil en attente";
-        $("dashboardTitle").textContent = "Profil non disponible";
-        $("dashboardDescription").textContent =
-          "Le compte est connecté, mais aucun profil n'a été trouvé. L'administration doit vérifier la configuration du profil.";
-        showMessage(
-          $("dashboardMessage"),
-          "Ne crée pas un autre compte. Le profil doit être configuré correctement dans Supabase.",
-          "error"
-        );
-        return;
-      }
+function showLanding() {
+  $("dashboard").classList.add("hidden");
 
-      if (profile.role === "admin") {
-        $("accountStatus").textContent = "Administrateur";
-        $("dashboardTitle").textContent = "Espace administrateur";
-        $("dashboardDescription").textContent =
-          "Connecté en tant qu'administrateur. Les outils de gestion seront disponibles après configuration.";
-        $("adminNotice").classList.remove("hidden");
-        showMessage(
-          $("dashboardMessage"),
-          "Connexion réussie. L'accès administrateur est reconnu.",
-          "success"
-        );
-        return;
-      }
+  document.querySelectorAll("#accueil > section").forEach(section => {
+    if (section.id !== "dashboard")
+      section.classList.remove("hidden");
+  });
 
-      $("accountStatus").textContent = profile.access_enabled
-        ? "Compte actif"
-        : "Accès en attente";
+  $("compte").scrollIntoView({behavior:"smooth", block:"start"});
+}
 
-      $("dashboardTitle").textContent = "Espace étudiant";
-      $("dashboardDescription").textContent = profile.access_enabled
-        ? "Ton compte est activé. Les accès aux semestres sont gérés séparément."
-        : "Ton compte est créé. L'administration doit activer ton accès avant que tu puisses commencer les révisions.";
+async function showDashboard(user) {
+  document.querySelectorAll("#accueil > section").forEach(section => {
+    if (section.id !== "dashboard")
+      section.classList.add("hidden");
+  });
 
-      $("studentNotice").classList.remove("hidden");
+  $("dashboard").classList.remove("hidden");
+  $("dashboard").scrollIntoView({behavior:"smooth", block:"start"});
+  $("accountEmail").textContent = user.email || "";
+  $("accountStatus").textContent = "Connecté · vérification du profil…";
+  $("adminNotice").classList.add("hidden");
+  $("studentNotice").classList.add("hidden");
 
-      showMessage(
-        $("dashboardMessage"),
-        profile.access_enabled
-          ? "Compte actif. La disponibilité des semestres dépend de tes autorisations."
-          : "Compte créé, en attente d'activation par l'administration.",
-        profile.access_enabled ? "success" : ""
-      );
-    }
+  showMessage($("dashboardMessage"), "Chargement du profil…");
+
+  const {data: profile, error} = await supabaseClient
+    .from("profiles")
+    .select("role, access_enabled")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (error) {
+    $("accountStatus").textContent = "Connexion réussie";
+    $("dashboardTitle").textContent = "Profil indisponible";
+    $("dashboardDescription").textContent =
+      "Le compte est connecté, mais le profil n’a pas pu être lu.";
+
+    showMessage(
+      $("dashboardMessage"),
+      "Erreur de lecture du profil : " + friendlyError(error),
+      "error"
+    );
+    return;
+  }
+
+  if (!profile) {
+    $("accountStatus").textContent = "Profil en attente";
+    $("dashboardTitle").textContent = "Profil non disponible";
+    $("dashboardDescription").textContent =
+      "Aucun profil n’a été trouvé dans la table profiles. Vérifie le déclencheur de création du profil dans Supabase.";
+
+    showMessage(
+      $("dashboardMessage"),
+      "Le profil doit être créé ou réparé dans Supabase.",
+      "error"
+    );
+    return;
+  }
+
+  if (profile.role === "admin") {
+    $("accountStatus").textContent = "Administrateur";
+    $("dashboardTitle").textContent = "Espace administrateur";
+    $("dashboardDescription").textContent =
+      "Connecté en tant qu’administrateur. Tu peux actualiser la liste des comptes étudiants et gérer leur accès global.";
+
+    $("adminNotice").classList.remove("hidden");
+
+    showMessage(
+      $("dashboardMessage"),
+      "Connexion administrateur réussie.",
+      "success"
+    );
+    return;
+  }
+
+  $("accountStatus").textContent =
+    profile.access_enabled ? "Compte activé" : "Accès en attente";
+
+  $("dashboardTitle").textContent = "Espace étudiant";
+
+  $("dashboardDescription").textContent = profile.access_enabled
+    ? "Ton compte est activé. Les accès aux semestres restent soumis aux autorisations configurées."
+    : "Ton compte est créé. L’administration doit activer ton accès après vérification.";
+
+  $("studentNotice").classList.remove("hidden");
+
+  $("studentAccessText").textContent = profile.access_enabled
+    ? "Ton compte est activé. Le contenu pédagogique sera disponible au fur et à mesure de sa mise en place."
+    : "Ton compte est en attente d’activation par l’administration.";
+
+  showMessage(
+    $("dashboardMessage"),
+    profile.access_enabled ? "Compte activé." : "Compte créé, en attente d’activation.",
+    profile.access_enabled ? "success" : ""
+  );
+}
 
 async function loadStudents() {
   const tbody = $("studentsTableBody");
+  const button = $("refreshStudentsButton");
   const message = $("adminMessage");
-  const refreshButton = $("refreshStudentsButton");
 
+  button.disabled = true;
   tbody.replaceChildren();
+
   const loadingRow = document.createElement("tr");
   const loadingCell = document.createElement("td");
   loadingCell.colSpan = 3;
   loadingCell.textContent = "Chargement des étudiants…";
-  loadingCell.style.padding = "12px";
   loadingRow.appendChild(loadingCell);
   tbody.appendChild(loadingRow);
 
-  refreshButton.disabled = true;
-
   try {
-    const { data: students, error } = await supabaseClient
+    const {data: students, error} = await supabaseClient
       .from("profiles")
       .select("id, full_name, role, created_at, access_enabled")
       .eq("role", "student")
-      .order("created_at", { ascending: false });
+      .order("created_at", {ascending:false});
 
     if (error) throw error;
 
@@ -609,7 +638,6 @@ async function loadStudents() {
       const cell = document.createElement("td");
       cell.colSpan = 3;
       cell.textContent = "Aucun étudiant trouvé.";
-      cell.style.padding = "12px";
       row.appendChild(cell);
       tbody.appendChild(row);
     } else {
@@ -618,24 +646,25 @@ async function loadStudents() {
         const nameCell = document.createElement("td");
         const statusCell = document.createElement("td");
         const actionCell = document.createElement("td");
-        const button = document.createElement("button");
+        const action = document.createElement("button");
 
         nameCell.textContent = student.full_name || "Étudiant";
         statusCell.textContent = student.access_enabled
           ? "Accès activé"
           : "Accès désactivé";
 
-        button.type = "button";
-        button.textContent = student.access_enabled
+        action.type = "button";
+        action.className = "table-action";
+        action.textContent = student.access_enabled
           ? "Désactiver"
           : "Activer";
 
-        button.addEventListener("click", async () => {
-          button.disabled = true;
-          showMessage(message, "Mise à jour de l'accès…");
+        action.addEventListener("click", async () => {
+          action.disabled = true;
+          showMessage(message, "Mise à jour de l’accès…");
 
           try {
-            const { data, error } = await supabaseClient.rpc(
+            const {data, error} = await supabaseClient.rpc(
               "admin_set_student_access",
               {
                 target_student: student.id,
@@ -645,175 +674,180 @@ async function loadStudents() {
 
             if (error) throw error;
 
-            if (data !== true) {
-              throw new Error("Étudiant introuvable ou accès non modifié.");
-            }
+            if (data !== true)
+              throw new Error("L’accès n’a pas été confirmé. Vérifie la fonction RPC.");
 
             showMessage(message, "Accès mis à jour.", "success");
             await loadStudents();
-          } catch (error) {
-            showMessage(
-              message,
-              "Erreur : " + friendlyError(error),
-              "error"
-            );
-            button.disabled = false;
+          } catch (err) {
+            showMessage(message, "Erreur : " + friendlyError(err), "error");
+            action.disabled = false;
           }
         });
 
-        for (const cell of [nameCell, statusCell, actionCell]) {
-          cell.style.padding = "12px";
-          cell.style.borderBottom = "1px solid #ddd";
-        }
-
-        actionCell.appendChild(button);
+        actionCell.appendChild(action);
         row.append(nameCell, statusCell, actionCell);
         tbody.appendChild(row);
       }
     }
 
-    showMessage(message, "Liste des étudiants actualisée.", "success");
+    showMessage(message, "Liste des comptes actualisée.", "success");
+
   } catch (error) {
     tbody.replaceChildren();
+
+    const row = document.createElement("tr");
+    const cell = document.createElement("td");
+    cell.colSpan = 3;
+    cell.textContent =
+      "Impossible de charger les étudiants : " + friendlyError(error);
+
+    row.appendChild(cell);
+    tbody.appendChild(row);
+
     showMessage(
       message,
-      "Impossible de charger les étudiants : " + friendlyError(error),
+      "Vérifie les autorisations RLS de la table profiles.",
       "error"
     );
   } finally {
-    refreshButton.disabled = false;
+    button.disabled = false;
   }
 }
 
-    async function init() {
-      if (!window.supabase) {
+async function init() {
+  $("year").textContent = new Date().getFullYear();
+
+  if (!window.supabase) {
+    showMessage(
+      $("authMessage"),
+      "Le service de connexion n’a pas pu être chargé. Actualise la page et vérifie ta connexion Internet.",
+      "error"
+    );
+    return;
+  }
+
+  if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
+    showMessage(
+      $("authMessage"),
+      "La configuration Supabase est incomplète.",
+      "error"
+    );
+    return;
+  }
+
+  supabaseClient = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_PUBLISHABLE_KEY
+  );
+
+  $("loginForm").addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const button = $("loginButton");
+    setBusy(button, true, "Connexion…");
+
+    try {
+      const {data, error} = await supabaseClient.auth.signInWithPassword({
+        email: $("loginEmail").value.trim(),
+        password: $("loginPassword").value
+      });
+
+      if (error) throw error;
+      if (!data.user) throw new Error("Aucun utilisateur retourné par Supabase.");
+
+      showMessage($("authMessage"), "Connexion réussie.", "success");
+      await showDashboard(data.user);
+
+    } catch (error) {
+      showMessage($("authMessage"), friendlyError(error), "error");
+    } finally {
+      setBusy(button, false, "Se connecter");
+    }
+  });
+
+  $("signupForm").addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const button = $("signupButton");
+    setBusy(button, true, "Création du compte…");
+
+    try {
+      const fullName = $("signupName").value.trim();
+      const email = $("signupEmail").value.trim();
+      const password = $("signupPassword").value;
+
+      if (fullName.length < 2)
+        throw new Error("Saisis ton nom complet.");
+
+      if (password.length < 8)
+        throw new Error("Le mot de passe doit contenir au moins 8 caractères.");
+
+      const {data, error} = await supabaseClient.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {full_name:fullName}
+        }
+      });
+
+      if (error) throw error;
+
+      if (data.session && data.user) {
         showMessage(
           $("authMessage"),
-          "Impossible de charger le service de connexion. Actualise la page et vérifie ta connexion Internet.",
-          "error"
+          "Compte créé. Chargement de ton espace…",
+          "success"
         );
-        return;
-      }
-
-      if (
-        !SUPABASE_PUBLISHABLE_KEY ||
-        SUPABASE_PUBLISHABLE_KEY === "REMPLACER_PAR_LA_CLE_PUBLIQUE_SUPABASE"
-      ) {
+        await showDashboard(data.user);
+      } else {
         showMessage(
           $("authMessage"),
-          "La mise en service nécessite encore la clé publique du projet Supabase. Ne saisis pas de clé secrète ici.",
-          "error"
+          "Demande de création envoyée. Si la confirmation e-mail est activée dans Supabase, confirme ton adresse avant de te connecter.",
+          "success"
         );
-        return;
       }
 
-      supabaseClient = window.supabase.createClient(
-        SUPABASE_URL,
-        SUPABASE_PUBLISHABLE_KEY
-      );
+    } catch (error) {
+      showMessage($("authMessage"), friendlyError(error), "error");
+    } finally {
+      setBusy(button, false, "Créer mon compte");
+    }
+  });
 
-      $("loginForm").addEventListener("submit", async (event) => {
-        event.preventDefault();
+  $("logoutButton").addEventListener("click", async () => {
+    const {error} = await supabaseClient.auth.signOut();
 
-        const button = $("loginButton");
-        setBusy(button, true, "Connexion…");
-
-        try {
-          const email = $("loginEmail").value.trim();
-          const password = $("loginPassword").value;
-
-          const { data, error } = await supabaseClient.auth.signInWithPassword({
-            email,
-            password
-          });
-
-          if (error) throw error;
-
-          showMessage($("authMessage"), "Connexion réussie.", "success");
-          await showDashboard(data.user);
-        } catch (error) {
-          showMessage($("authMessage"), friendlyError(error), "error");
-        } finally {
-          setBusy(button, false, "Se connecter");
-        }
-      });
-
-      $("signupForm").addEventListener("submit", async (event) => {
-        event.preventDefault();
-
-        const button = $("signupButton");
-        setBusy(button, true, "Création du compte…");
-
-        try {
-          const fullName = $("signupName").value.trim();
-          const email = $("signupEmail").value.trim();
-          const password = $("signupPassword").value;
-
-          const { data, error } = await supabaseClient.auth.signUp({
-            email,
-            password,
-            options: {
-              data: { full_name: fullName }
-            }
-          });
-
-          if (error) throw error;
-
-          if (data.session && data.user) {
-            showMessage(
-              $("authMessage"),
-              "Compte créé. Vérification de ton profil…",
-              "success"
-            );
-            await showDashboard(data.user);
-         } else {
-            showMessage(
-            $("authMessage"),
-              "Compte créé. Connecte-toi avec ton e-mail et ton mot de passe.",
-              "success"
-           );
-        }
-        } catch (error) {
-          showMessage($("authMessage"), friendlyError(error), "error");
-        } finally {
-          setBusy(button, false, "Créer mon compte");
-        }
-      });
-
-      $("logoutButton").addEventListener("click", async () => {
-        const { error } = await supabaseClient.auth.signOut();
-
-        if (error) {
-          showMessage($("dashboardMessage"), friendlyError(error), "error");
-          return;
-        }
-
-        $("loginPassword").value = "";
-        showLanding();
-        showMessage($("authMessage"), "Tu es déconnecté.", "success");
-      });
-      
-      $("refreshStudentsButton").addEventListener("click", () => {
-  loadStudents();
-      });
-
-      $("themeButton").addEventListener("click", () => {
-        document.body.classList.toggle("light");
-      });
-
-      const { data: { session }, error } = await supabaseClient.auth.getSession();
-
-      if (error) {
-        showMessage($("authMessage"), friendlyError(error), "error");
-        return;
-      }
-
-      if (session?.user) {
-        await showDashboard(session.user);
-      }
+    if (error) {
+      showMessage($("dashboardMessage"), friendlyError(error), "error");
+      return;
     }
 
-    init();
-  </script>
+    $("loginPassword").value = "";
+    showLanding();
+    showMessage($("authMessage"), "Tu es déconnecté.", "success");
+  });
+
+  $("refreshStudentsButton").addEventListener("click", loadStudents);
+
+  document.querySelectorAll("[data-focus='signup']").forEach(link => {
+    link.addEventListener("click", () => {
+      setTimeout(() => $("signupName").focus({preventScroll:true}), 250);
+    });
+  });
+
+  const {data:{session}, error} = await supabaseClient.auth.getSession();
+
+  if (error) {
+    showMessage($("authMessage"), friendlyError(error), "error");
+    return;
+  }
+
+  if (session?.user)
+    await showDashboard(session.user);
+}
+
+init();
+</script>
 </body>
 </html>
