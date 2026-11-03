@@ -239,7 +239,7 @@ async function loadAll(){
   db.from("courses").select("*").order("id"),
   db.from("dreq_questions").select("*").order("id"),
   db.from("profiles").select("*"),
-  db.from("student_semester_access").select("*")
+  db.from("student_access").select("*")
  ]);
 
  const labels=["Semestres","Modules","Cours","Questions","Étudiants","Accès étudiants"];
