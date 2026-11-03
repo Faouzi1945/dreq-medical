@@ -1,247 +1,518 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DREQ — Administration</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    *{box-sizing:border-box}
-    body{margin:0;font-family:Arial,sans-serif;background:#f3f6f8;color:#18343b}
-    header{background:#123b43;color:white;padding:22px 5%;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
-    h1{font-size:22px;margin:0}
-    main{max-width:1050px;margin:30px auto;padding:0 16px}
-    .panel{background:white;border-radius:14px;padding:22px;margin-bottom:20px;box-shadow:0 4px 18px #102f3a10}
-    h2{font-size:19px;margin:0 0 10px}
-    p{color:#64777d;line-height:1.5}
-    button,select{font:inherit;border-radius:8px;padding:11px 14px}
-    button{border:0;background:#167b78;color:white;cursor:pointer;font-weight:600}
-    button.secondary{background:#e8eff0;color:#24434a}
-    button:disabled{opacity:.5;cursor:not-allowed}
-    select{border:1px solid #d4dfe1;background:white;max-width:100%}
-    .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:16px 0}
-    .student{border:1px solid #e3eaec;border-radius:11px;padding:15px;margin-top:12px;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}
-    .student strong{display:block;margin-bottom:5px}
-    .email{font-size:13px;color:#718187}
-    .access{display:flex;gap:8px;flex-wrap:wrap}
-    .access button{min-width:90px}
-    .on{background:#167b78}
-    .off{background:#e9eeee;color:#4b6065}
-    #message{padding:12px;border-radius:9px;margin:12px 0;display:none;white-space:pre-wrap}
-    #message.error{display:block;background:#fff0ef;color:#a42e28}
-    #message.success{display:block;background:#eaf7f1;color:#176344}
-    .empty{padding:18px;color:#718187;text-align:center}
-    @media(max-width:600px){header{padding:18px}main{margin:18px auto}.panel{padding:16px}.student{align-items:flex-start}}
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DREQ — Administration</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#f3f6f8;color:#18343b}
+header{background:#123b43;color:white;padding:20px 5%;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+main{max-width:1150px;margin:25px auto;padding:0 15px}
+.panel{background:white;border-radius:14px;padding:20px;margin-bottom:18px;box-shadow:0 3px 15px #102f3a10}
+h1{font-size:22px;margin:0}
+h2{font-size:19px;margin:0 0 15px}
+h3{font-size:16px;margin:15px 0 8px}
+p{color:#687b80;line-height:1.5}
+input,select,textarea{width:100%;padding:11px;border:1px solid #d4dfe1;border-radius:8px;font:inherit;margin:5px 0 12px;background:white}
+textarea{min-height:90px;resize:vertical}
+button{border:0;border-radius:8px;padding:10px 14px;background:#167b78;color:white;font-weight:600;cursor:pointer;margin:3px}
+button.secondary{background:#e8eff0;color:#24434a}
+button.danger{background:#b94343}
+button:disabled{opacity:.5}
+.tabs{display:flex;gap:7px;flex-wrap:wrap;margin:15px 0}
+.tab.active{background:#123b43;color:white}
+.section{display:none}
+.section.active{display:block}
+.item{border:1px solid #e1e9eb;border-radius:10px;padding:13px;margin:10px 0;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.item small{display:block;color:#718187;margin-top:5px}
+.actions{display:flex;gap:5px;flex-wrap:wrap}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+#message{padding:12px;border-radius:8px;margin:12px 0;display:none;white-space:pre-wrap}
+#message.success{display:block;background:#eaf7f1;color:#176344}
+#message.error{display:block;background:#fff0ef;color:#a42e28}
+.hidden{display:none}
+.preview{width:65px;height:55px;object-fit:cover;border-radius:7px}
+label{font-size:14px;font-weight:bold}
+@media(max-width:600px){header{padding:17px}main{margin:15px auto}.panel{padding:15px}}
+</style>
 </head>
 <body>
+
 <header>
   <h1>DREQ — Administration</h1>
-  <button class="secondary" id="logoutBtn">Déconnexion</button>
+  <button class="secondary" id="logout">Déconnexion</button>
 </header>
 
 <main>
-  <section class="panel">
-    <h2>Gestion des accès étudiants</h2>
-    <p>Active ou désactive l'accès aux semestres S1 et S3 après vérification du paiement.</p>
-    <div id="message"></div>
-    <div class="toolbar">
-      <input id="search" type="text" placeholder="Rechercher un étudiant..."
-        style="padding:11px;border:1px solid #d4dfe1;border-radius:8px;flex:1;min-width:180px">
-      <button id="refreshBtn" class="secondary">Actualiser</button>
+  <div id="message"></div>
+
+  <nav class="tabs">
+    <button class="tab active" data-tab="semesters">Semestres</button>
+    <button class="tab" data-tab="modules">Modules</button>
+    <button class="tab" data-tab="courses">Cours</button>
+    <button class="tab" data-tab="questions">QCM / QCU</button>
+    <button class="tab" data-tab="students">Étudiants</button>
+  </nav>
+
+  <section id="semesters" class="section active">
+    <div class="panel">
+      <h2>Gestion des semestres</h2>
+      <input id="semesterId" type="hidden">
+      <label>Code du semestre</label>
+      <input id="semesterCode" placeholder="Exemple : S1">
+      <label>Nom du semestre</label>
+      <input id="semesterName" placeholder="Semestre 1">
+      <button onclick="saveSemester()">Enregistrer</button>
+      <button class="secondary" onclick="resetSemester()">Annuler</button>
+      <div id="semesterList"></div>
     </div>
-    <div id="students"><div class="empty">Chargement des étudiants...</div></div>
+  </section>
+
+  <section id="modules" class="section">
+    <div class="panel">
+      <h2>Gestion des modules</h2>
+      <input id="moduleId" type="hidden">
+      <label>Semestre</label>
+      <select id="moduleSemester"></select>
+      <label>Nom du module</label>
+      <input id="moduleName" placeholder="Nom du module">
+      <label>Description</label>
+      <textarea id="moduleDescription"></textarea>
+      <label>Image URL</label>
+      <input id="moduleImage" placeholder="Lien de l'image">
+      <button onclick="saveModule()">Enregistrer</button>
+      <button class="secondary" onclick="resetModule()">Annuler</button>
+      <div id="moduleList"></div>
+    </div>
+  </section>
+
+  <section id="courses" class="section">
+    <div class="panel">
+      <h2>Gestion des cours</h2>
+      <input id="courseId" type="hidden">
+      <label>Module</label>
+      <select id="courseModule"></select>
+      <label>Nom du cours</label>
+      <input id="courseName" placeholder="Titre du cours">
+      <label>Description</label>
+      <textarea id="courseDescription"></textarea>
+      <label>Contenu du cours</label>
+      <textarea id="courseContent" placeholder="Contenu ou résumé du cours"></textarea>
+      <label>Lien du fichier PDF (facultatif)</label>
+      <input id="courseFile" placeholder="URL du PDF">
+      <button onclick="saveCourse()">Enregistrer</button>
+      <button class="secondary" onclick="resetCourse()">Annuler</button>
+      <div id="courseList"></div>
+    </div>
+  </section>
+
+  <section id="questions" class="section">
+    <div class="panel">
+      <h2>Gestion des QCM / QCU</h2>
+      <input id="questionId" type="hidden">
+      <label>Cours</label>
+      <select id="questionCourse"></select>
+      <label>Type</label>
+      <select id="questionType">
+        <option value="QCM">QCM — Plusieurs réponses possibles</option>
+        <option value="QCU">QCU — Une seule réponse</option>
+      </select>
+      <label>Question</label>
+      <textarea id="questionText" placeholder="Écris la question ici"></textarea>
+      <label>Choix des réponses</label>
+      <p>Écris une réponse par ligne. Ajoute * au début de la bonne réponse.</p>
+      <textarea id="questionAnswers" placeholder="* Première réponse&#10;Deuxième réponse&#10;Troisième réponse"></textarea>
+      <label>Explication</label>
+      <textarea id="questionExplanation" placeholder="Explication de la correction"></textarea>
+      <button onclick="saveQuestion()">Enregistrer la question</button>
+      <button class="secondary" onclick="resetQuestion()">Annuler</button>
+      <div id="questionList"></div>
+    </div>
+  </section>
+
+  <section id="students" class="section">
+    <div class="panel">
+      <h2>Gestion des accès étudiants</h2>
+      <input id="studentSearch" placeholder="Rechercher un étudiant..." oninput="renderStudents()">
+      <div id="studentList"></div>
+    </div>
   </section>
 </main>
 
 <script>
-const SUPABASE_URL = "https://ttrunryfmwtantycmkor.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_pv7eoks18qa19-DBSVxBKg_jE8m_OVI";
-const ADMIN_EMAIL = "alialiamal2024@gmail.com";
+const SUPABASE_URL="https://ttrunryfmwtantycmkor.supabase.co";
+const SUPABASE_ANON_KEY="sb_publishable_pv7eoks18qa19-DBSVxBKg_jE8m_OVI";
+const ADMIN_EMAIL="alialiamal2024@gmail.com";
 
-const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-let students = [];
-let semesters = [];
-let accessRows = [];
+const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 
-const $ = id => document.getElementById(id);
+let semesters=[],modules=[],courses=[],questions=[],students=[],accessRows=[];
 
-function message(text, type="success") {
-  const el = $("message");
-  el.textContent = text;
-  el.className = type;
+const $=id=>document.getElementById(id);
+
+function msg(text,type="success"){
+ const el=$("message");
+ el.textContent=text;
+ el.className=type;
+ el.scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+function clearMsg(){
+ $("message").className="";
+ $("message").textContent="";
+}
+function esc(value){
+ return String(value??"").replace(/[&<>"']/g,c=>({
+ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+ }[c]));
+}
+function showTab(id){
+ document.querySelectorAll(".section").forEach(x=>x.classList.remove("active"));
+ document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+ $(id).classList.add("active");
+ document.querySelector('[data-tab="'+id+'"]').classList.add("active");
+}
+document.querySelectorAll(".tab").forEach(b=>{
+ b.addEventListener("click",()=>showTab(b.dataset.tab));
+});
+
+async function start(){
+ const {data,error}=await db.auth.getSession();
+ const session=data?.session;
+
+ if(error||!session){
+  document.body.innerHTML="<main><div class='panel'><h2>Connexion nécessaire</h2><p>Connecte-toi depuis DREQ.</p><button onclick=\"location.href='index.html'\">Accueil</button></div></main>";
+  return;
+ }
+
+ if((session.user.email||"").toLowerCase()!==ADMIN_EMAIL.toLowerCase()){
+  document.body.innerHTML="<main><div class='panel'><h2>Accès refusé</h2><button onclick=\"location.href='index.html'\">Retour</button></div></main>";
+  return;
+ }
+
+ await loadAll();
 }
 
-function hideMessage() {
-  $("message").style.display = "none";
-  $("message").className = "";
+async function loadAll(){
+ clearMsg();
+ const results=await Promise.all([
+  db.from("semesters").select("*").order("id"),
+  db.from("modules").select("*").order("id"),
+  db.from("courses").select("*").order("id"),
+  db.from("dreq_questions").select("*").order("id"),
+  db.from("profiles").select("*"),
+  db.from("student_access").select("*")
+ ]);
+
+ const names=["Semestres","Modules","Cours","Questions","Étudiants","Accès"];
+ for(let i=0;i<results.length;i++){
+  if(results[i].error){
+   msg("Erreur "+names[i]+" : "+results[i].error.message,"error");
+   return;
+  }
+ }
+
+ semesters=results[0].data||[];
+ modules=results[1].data||[];
+ courses=results[2].data||[];
+ questions=results[3].data||[];
+ students=(results[4].data||[]).filter(s=>
+  (s.email||"").toLowerCase()!==ADMIN_EMAIL.toLowerCase()
+ );
+ accessRows=results[5].data||[];
+
+ renderAll();
 }
 
-function semesterCode(s) {
-  const value = String(s.code || s.name || s.title || s.label || "").toUpperCase().replace(/\s/g,"");
-  if (value.includes("S1") || value.includes("SEMESTRE1")) return "S1";
-  if (value.includes("S3") || value.includes("SEMESTRE3")) return "S3";
-  return "";
+function renderAll(){
+ renderSemesters();
+ renderModules();
+ renderCourses();
+ renderQuestions();
+ renderStudents();
+ fillSelects();
 }
 
-async function start() {
-  const { data: { session }, error } = await db.auth.getSession();
+function fillSelects(){
+ $("moduleSemester").innerHTML=semesters.map(s=>
+  `<option value="${esc(s.id)}">${esc(s.code||s.name)}</option>`
+ ).join("");
 
-  if (error || !session) {
-    document.body.innerHTML = "<main><section class='panel'><h2>Connexion nécessaire</h2><p>Connecte-toi depuis la page principale DREQ avec le compte administrateur.</p><button onclick=\"location.href='index.html'\">Retour à l'accueil</button></section></main>";
-    return;
-  }
+ $("courseModule").innerHTML=modules.map(m=>
+  `<option value="${esc(m.id)}">${esc(m.name)}</option>`
+ ).join("");
 
-  if ((session.user.email || "").toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
-    document.body.innerHTML = "<main><section class='panel'><h2>Accès refusé</h2><p>Cette page est réservée à l'administratrice.</p><button onclick=\"location.href='index.html'\">Retour</button></section></main>";
-    return;
-  }
-
-  await loadData();
+ $("questionCourse").innerHTML=courses.map(c=>
+  `<option value="${esc(c.id)}">${esc(c.name)}</option>`
+ ).join("");
 }
 
-async function loadData() {
-  hideMessage();
-  $("students").innerHTML = "<div class='empty'>Chargement...</div>";
-
-  const [profilesResult, semestersResult, accessResult] = await Promise.all([
-    db.from("profiles").select("*"),
-    db.from("semesters").select("*"),
-    db.from("student_access").select("*")
-  ]);
-
-  if (profilesResult.error) {
-    message("Erreur lors du chargement des étudiants : " + profilesResult.error.message, "error");
-    $("students").innerHTML = "";
-    return;
-  }
-  if (semestersResult.error) {
-    message("Erreur lors du chargement des semestres : " + semestersResult.error.message, "error");
-    $("students").innerHTML = "";
-    return;
-  }
-  if (accessResult.error) {
-    message("Erreur lors du chargement des accès : " + accessResult.error.message, "error");
-    $("students").innerHTML = "";
-    return;
-  }
-
-  students = (profilesResult.data || []).filter(p =>
-    String(p.email || "").toLowerCase() !== ADMIN_EMAIL.toLowerCase()
-  );
-  semesters = (semestersResult.data || []).filter(s => ["S1","S3"].includes(semesterCode(s)));
-  accessRows = accessResult.data || [];
-
-  if (!semesters.length) {
-    message("Je ne trouve pas S1 et S3 dans la table semesters. Vérifie que leurs noms ou codes sont bien S1 et S3.", "error");
-  }
-
-  renderStudents();
+function renderSemesters(){
+ $("semesterList").innerHTML="<h3>Semestres enregistrés</h3>"+
+ semesters.map(s=>`
+ <div class="item">
+  <div><strong>${esc(s.code||"")}</strong><small>${esc(s.name||"")}</small></div>
+  <div class="actions">
+   <button class="secondary" onclick="editSemester('${s.id}')">Modifier</button>
+   <button class="danger" onclick="deleteSemester('${s.id}')">Supprimer</button>
+  </div>
+ </div>`).join("")||"<p>Aucun semestre.</p>";
 }
 
-function hasAccess(studentId, semesterId) {
-  return accessRows.some(a =>
-    String(a.student_id) === String(studentId) &&
-    String(a.semester_id) === String(semesterId) &&
-    a.enabled === true
-  );
+async function saveSemester(){
+ const id=$("semesterId").value;
+ const code=$("semesterCode").value.trim().toUpperCase();
+ const name=$("semesterName").value.trim();
+ if(!code||!name)return msg("Remplis le code et le nom.","error");
+
+ const data={code,name};
+ const r=id
+  ?await db.from("semesters").update(data).eq("id",id)
+  :await db.from("semesters").insert(data);
+ if(r.error)return msg(r.error.message,"error");
+ resetSemester();await loadAll();msg("Semestre enregistré.");
+}
+function editSemester(id){
+ const s=semesters.find(x=>String(x.id)===String(id));
+ if(!s)return;
+ $("semesterId").value=s.id;
+ $("semesterCode").value=s.code||"";
+ $("semesterName").value=s.name||"";
+ showTab("semesters");
+}
+function resetSemester(){
+ $("semesterId").value="";
+ $("semesterCode").value="";
+ $("semesterName").value="";
+}
+async function deleteSemester(id){
+ if(!confirm("Supprimer ce semestre et son contenu associé ?"))return;
+ const r=await db.from("semesters").delete().eq("id",id);
+ if(r.error)return msg(r.error.message,"error");
+ await loadAll();msg("Semestre supprimé.");
 }
 
-function renderStudents() {
-  const term = $("search").value.trim().toLowerCase();
-  const filtered = students.filter(s =>
-    String(s.full_name || "").toLowerCase().includes(term) ||
-    String(s.email || "").toLowerCase().includes(term)
-  );
+function renderModules(){
+ $("moduleList").innerHTML="<h3>Modules enregistrés</h3>"+
+ modules.map(m=>`
+ <div class="item">
+  <div>${m.image_url?`<img class="preview" src="${esc(m.image_url)}">`:""}
+   <strong>${esc(m.name)}</strong>
+   <small>${esc(semesters.find(s=>String(s.id)===String(m.semester_id))?.code||"")}</small>
+  </div>
+  <div class="actions">
+   <button class="secondary" onclick="editModule('${m.id}')">Modifier</button>
+   <button class="secondary" onclick="togglePublish('modules','${m.id}',${!!m.is_published})">${m.is_published?"Masquer":"Publier"}</button>
+   <button class="danger" onclick="deleteModule('${m.id}')">Supprimer</button>
+  </div>
+ </div>`).join("")||"<p>Aucun module.</p>";
+}
+async function saveModule(){
+ const id=$("moduleId").value;
+ const data={
+  semester_id:$("moduleSemester").value,
+  name:$("moduleName").value.trim(),
+  description:$("moduleDescription").value.trim(),
+  image_url:$("moduleImage").value.trim()
+ };
+ if(!data.name||!data.semester_id)return msg("Choisis un semestre et un nom.","error");
+ const r=id?await db.from("modules").update(data).eq("id",id):await db.from("modules").insert(data);
+ if(r.error)return msg(r.error.message,"error");
+ resetModule();await loadAll();msg("Module enregistré.");
+}
+function editModule(id){
+ const m=modules.find(x=>String(x.id)===String(id));if(!m)return;
+ $("moduleId").value=m.id;
+ $("moduleSemester").value=m.semester_id;
+ $("moduleName").value=m.name||"";
+ $("moduleDescription").value=m.description||"";
+ $("moduleImage").value=m.image_url||"";
+ showTab("modules");
+}
+function resetModule(){
+ $("moduleId").value="";$("moduleName").value="";
+ $("moduleDescription").value="";$("moduleImage").value="";
+}
+async function deleteModule(id){
+ if(!confirm("Supprimer ce module et ses cours/questions ?"))return;
+ const r=await db.from("modules").delete().eq("id",id);
+ if(r.error)return msg(r.error.message,"error");
+ await loadAll();msg("Module supprimé.");
+}
 
-  if (!filtered.length) {
-    $("students").innerHTML = "<div class='empty'>Aucun étudiant trouvé.</div>";
-    return;
-  }
+function renderCourses(){
+ $("courseList").innerHTML="<h3>Cours enregistrés</h3>"+
+ courses.map(c=>`
+ <div class="item">
+  <div><strong>${esc(c.name)}</strong><small>${esc(modules.find(m=>String(m.id)===String(c.module_id))?.name||"")}</small></div>
+  <div class="actions">
+   <button class="secondary" onclick="editCourse('${c.id}')">Modifier</button>
+   <button class="secondary" onclick="togglePublish('courses','${c.id}',${!!c.is_published})">${c.is_published?"Masquer":"Publier"}</button>
+   <button class="danger" onclick="deleteCourse('${c.id}')">Supprimer</button>
+  </div>
+ </div>`).join("")||"<p>Aucun cours.</p>";
+}
+async function saveCourse(){
+ const id=$("courseId").value;
+ const data={
+  module_id:$("courseModule").value,
+  name:$("courseName").value.trim(),
+  description:$("courseDescription").value.trim(),
+  content:$("courseContent").value.trim(),
+  file_url:$("courseFile").value.trim()
+ };
+ if(!data.name||!data.module_id)return msg("Choisis un module et un nom.","error");
+ const r=id?await db.from("courses").update(data).eq("id",id):await db.from("courses").insert(data);
+ if(r.error)return msg(r.error.message,"error");
+ resetCourse();await loadAll();msg("Cours enregistré.");
+}
+function editCourse(id){
+ const c=courses.find(x=>String(x.id)===String(id));if(!c)return;
+ $("courseId").value=c.id;$("courseModule").value=c.module_id;
+ $("courseName").value=c.name||"";
+ $("courseDescription").value=c.description||"";
+ $("courseContent").value=c.content||"";
+ $("courseFile").value=c.file_url||"";
+ showTab("courses");
+}
+function resetCourse(){
+ $("courseId").value="";$("courseName").value="";
+ $("courseDescription").value="";$("courseContent").value="";
+ $("courseFile").value="";
+}
+async function deleteCourse(id){
+ if(!confirm("Supprimer ce cours et ses questions ?"))return;
+ const r=await db.from("courses").delete().eq("id",id);
+ if(r.error)return msg(r.error.message,"error");
+ await loadAll();msg("Cours supprimé.");
+}
 
-  $("students").innerHTML = "";
+function renderQuestions(){
+ $("questionList").innerHTML="<h3>Questions enregistrées</h3>"+
+ questions.map(q=>`
+ <div class="item">
+  <div><strong>${esc(q.question_type)} — ${esc(q.question_text)}</strong>
+   <small>${esc(courses.find(c=>String(c.id)===String(q.course_id))?.name||"")}</small>
+  </div>
+  <div class="actions">
+   <button class="secondary" onclick="editQuestion('${q.id}')">Modifier</button>
+   <button class="secondary" onclick="togglePublish('dreq_questions','${q.id}',${!!q.is_published})">${q.is_published?"Masquer":"Publier"}</button>
+   <button class="danger" onclick="deleteQuestion('${q.id}')">Supprimer</button>
+  </div>
+ </div>`).join("")||"<p>Aucune question.</p>";
+}
+async function saveQuestion(){
+ const id=$("questionId").value;
+ const data={
+  course_id:$("questionCourse").value,
+  question_type:$("questionType").value,
+  question_text:$("questionText").value.trim(),
+  explanation:$("questionExplanation").value.trim()
+ };
+ const lines=$("questionAnswers").value.split("\n").map(x=>x.trim()).filter(Boolean);
+ const answers=lines.map(x=>({
+  answer_text:x.replace(/^\*/,"").trim(),
+  is_correct:x.startsWith("*")
+ }));
+ if(!data.course_id||!data.question_text||answers.length<2)
+  return msg("Choisis un cours, écris la question et au moins deux réponses.","error");
+ if(!answers.some(a=>a.is_correct))
+  return msg("Marque la bonne réponse avec * au début de sa ligne.","error");
+ if(data.question_type==="QCU"&&answers.filter(a=>a.is_correct).length!==1)
+  return msg("Un QCU doit avoir une seule bonne réponse.","error");
 
-  filtered.forEach(student => {
-    const card = document.createElement("div");
-    card.className = "student";
+ let questionId=id;
+ if(id){
+  const r=await db.from("dreq_questions").update(data).eq("id",id);
+  if(r.error)return msg(r.error.message,"error");
+  const del=await db.from("dreq_answers").delete().eq("question_id",id);
+  if(del.error)return msg(del.error.message,"error");
+ }else{
+  const r=await db.from("dreq_questions").insert(data).select("id").single();
+  if(r.error)return msg(r.error.message,"error");
+  questionId=r.data.id;
+ }
+ const inserted=await db.from("dreq_answers").insert(
+  answers.map(a=>({...a,question_id:questionId}))
+ );
+ if(inserted.error)return msg(inserted.error.message,"error");
+ resetQuestion();await loadAll();msg("Question et réponses enregistrées.");
+}
+async function editQuestion(id){
+ const q=questions.find(x=>String(x.id)===String(id));if(!q)return;
+ const r=await db.from("dreq_answers").select("*").eq("question_id",id);
+ if(r.error)return msg(r.error.message,"error");
+ $("questionId").value=q.id;
+ $("questionCourse").value=q.course_id;
+ $("questionType").value=q.question_type;
+ $("questionText").value=q.question_text||"";
+ $("questionExplanation").value=q.explanation||"";
+ $("questionAnswers").value=(r.data||[]).map(a=>(a.is_correct?"*":"")+a.answer_text).join("\n");
+ showTab("questions");
+}
+function resetQuestion(){
+ $("questionId").value="";$("questionText").value="";
+ $("questionExplanation").value="";$("questionAnswers").value="";
+}
+async function deleteQuestion(id){
+ if(!confirm("Supprimer cette question ?"))return;
+ const r=await db.from("dreq_questions").delete().eq("id",id);
+ if(r.error)return msg(r.error.message,"error");
+ await loadAll();msg("Question supprimée.");
+}
 
-    const info = document.createElement("div");
-    const name = document.createElement("strong");
-    name.textContent = student.full_name || "Étudiant";
-    const email = document.createElement("div");
-    email.className = "email";
-    email.textContent = student.email || "";
-    info.append(name, email);
+async function togglePublish(table,id,current){
+ const r=await db.from(table).update({is_published:!current}).eq("id",id);
+ if(r.error)return msg(r.error.message,"error");
+ await loadAll();msg("Publication mise à jour.");
+}
 
-    const controls = document.createElement("div");
-    controls.className = "access";
-
-    ["S1","S3"].forEach(code => {
-      const semester = semesters.find(s => semesterCode(s) === code);
-      const btn = document.createElement("button");
-
-      if (!semester) {
-        btn.textContent = code + " indisponible";
-        btn.disabled = true;
-        btn.className = "off";
-      } else {
-        const active = hasAccess(student.id, semester.id);
-        btn.textContent = code + (active ? " — Activé" : " — Désactivé");
-        btn.className = active ? "on" : "off";
-        btn.addEventListener("click", () =>
-          changeAccess(student.id, semester.id, !active, btn)
-        );
-      }
-      controls.appendChild(btn);
-    });
-
-    card.append(info, controls);
-    $("students").appendChild(card);
+function hasAccess(studentId,semesterId){
+ return accessRows.some(a=>
+  String(a.student_id)===String(studentId)&&
+  String(a.semester_id)===String(semesterId)&&a.enabled===true
+ );
+}
+function renderStudents(){
+ const term=$("studentSearch").value.trim().toLowerCase();
+ const filtered=students.filter(s=>
+  String(s.full_name||"").toLowerCase().includes(term)||
+  String(s.email||"").toLowerCase().includes(term)
+ );
+ $("studentList").innerHTML=filtered.map(s=>`
+  <div class="item">
+   <div><strong>${esc(s.full_name||"Étudiant")}</strong><small>${esc(s.email||"")}</small></div>
+   <div class="actions">
+    ${semesters.map(sem=>`
+     <button class="${hasAccess(s.id,sem.id)?"":"secondary"}"
+      onclick="changeAccess('${s.id}','${sem.id}',${!hasAccess(s.id,sem.id)})">
+      ${esc(sem.code||sem.name)} ${hasAccess(s.id,sem.id)?"✓":"+"}
+     </button>`).join("")}
+   </div>
+  </div>`).join("")||"<p>Aucun étudiant trouvé.</p>";
+}
+async function changeAccess(studentId,semesterId,enable){
+ const existing=accessRows.find(a=>
+  String(a.student_id)===String(studentId)&&
+  String(a.semester_id)===String(semesterId)
+ );
+ let r;
+ if(existing){
+  r=await db.from("student_access").update({enabled:enable})
+   .eq("student_id",studentId).eq("semester_id",semesterId);
+ }else{
+  r=await db.from("student_access").insert({
+   student_id:studentId,semester_id:semesterId,
+   enabled:enable,granted_at:new Date().toISOString()
   });
+ }
+ if(r.error)return msg("Erreur accès : "+r.error.message,"error");
+ await loadAll();msg("Accès étudiant mis à jour.");
 }
 
-async function changeAccess(studentId, semesterId, enable, button) {
-  button.disabled = true;
-  hideMessage();
-
-  const existing = accessRows.find(a =>
-    String(a.student_id) === String(studentId) &&
-    String(a.semester_id) === String(semesterId)
-  );
-
-  let result;
-
-  if (existing) {
-    result = await db.from("student_access")
-      .update({ enabled: enable })
-      .eq("student_id", studentId)
-      .eq("semester_id", semesterId);
-  } else {
-    result = await db.from("student_access").insert({
-      student_id: studentId,
-      semester_id: semesterId,
-      enabled: enable,
-      granted_at: new Date().toISOString()
-    });
-  }
-
-  button.disabled = false;
-
-  if (result.error) {
-    message("Impossible de modifier l'accès : " + result.error.message, "error");
-    return;
-  }
-
-  message("Accès " + (enable ? "activé" : "désactivé") + " avec succès.");
-  await loadData();
-}
-
-$("search").addEventListener("input", renderStudents);
-$("refreshBtn").addEventListener("click", loadData);
-
-$("logoutBtn").addEventListener("click", async () => {
-  await db.auth.signOut();
-  location.href = "index.html";
+$("logout").addEventListener("click",async()=>{
+ await db.auth.signOut();location.href="index.html";
 });
 
 start();
