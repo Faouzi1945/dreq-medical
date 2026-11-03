@@ -1,384 +1,250 @@
-
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DREQ — Administration</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<style>
-:root{--bg:#f4f7f8;--card:#fff;--text:#17343b;--muted:#71858a;--primary:#087f83;--border:#e2eaec}
-body.dark{--bg:#101d22;--card:#1b2c32;--text:#edf5f5;--muted:#a5b8bb;--border:#34474d}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,sans-serif}
-header{background:#123b43;color:white;padding:20px 5%;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
-header h1{margin:0;font-size:23px}
-header p{margin:5px 0 0;color:#c6dddd;font-size:13px}
-button{border:0;border-radius:9px;padding:11px 15px;background:var(--primary);color:white;cursor:pointer;font-weight:600}
-button.secondary{background:#64777c}
-button.danger{background:#b84343}
-main{max-width:1150px;margin:25px auto;padding:0 16px}
-.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:18px}
-h2{font-size:19px;margin:0 0 15px}
-input,select{width:100%;padding:12px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);margin:7px 0 12px}
-label{font-size:13px;font-weight:bold}
-.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
-.tabs button{background:#dce9e9;color:#17434a}
-.tabs button.active{background:var(--primary);color:white}
-.tab{display:none}.tab.active{display:block}
-table{width:100%;border-collapse:collapse;min-width:550px}
-th,td{padding:12px;text-align:left;border-bottom:1px solid var(--border);font-size:14px}
-th{color:var(--muted)}
-.table-wrap{overflow-x:auto}
-.semester{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px;border:1px solid var(--border);border-radius:9px;margin:8px 0}
-.semester label{display:flex;align-items:center;gap:8px}
-.semester input{width:auto;margin:0}
-.status{font-size:12px;color:var(--muted)}
-.message{padding:12px;border-radius:8px;margin:12px 0;background:var(--bg);font-size:14px}
-.hidden{display:none}
-.row{display:grid;grid-template-columns:1fr 1fr;gap:15px}
-@media(max-width:650px){.row{grid-template-columns:1fr}header{padding:16px}}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DREQ — Administration</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Arial,sans-serif;background:#f3f6f8;color:#18343b}
+    header{background:#123b43;color:white;padding:22px 5%;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+    h1{font-size:22px;margin:0}
+    main{max-width:1050px;margin:30px auto;padding:0 16px}
+    .panel{background:white;border-radius:14px;padding:22px;margin-bottom:20px;box-shadow:0 4px 18px #102f3a10}
+    h2{font-size:19px;margin:0 0 10px}
+    p{color:#64777d;line-height:1.5}
+    button,select{font:inherit;border-radius:8px;padding:11px 14px}
+    button{border:0;background:#167b78;color:white;cursor:pointer;font-weight:600}
+    button.secondary{background:#e8eff0;color:#24434a}
+    button:disabled{opacity:.5;cursor:not-allowed}
+    select{border:1px solid #d4dfe1;background:white;max-width:100%}
+    .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:16px 0}
+    .student{border:1px solid #e3eaec;border-radius:11px;padding:15px;margin-top:12px;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}
+    .student strong{display:block;margin-bottom:5px}
+    .email{font-size:13px;color:#718187}
+    .access{display:flex;gap:8px;flex-wrap:wrap}
+    .access button{min-width:90px}
+    .on{background:#167b78}
+    .off{background:#e9eeee;color:#4b6065}
+    #message{padding:12px;border-radius:9px;margin:12px 0;display:none;white-space:pre-wrap}
+    #message.error{display:block;background:#fff0ef;color:#a42e28}
+    #message.success{display:block;background:#eaf7f1;color:#176344}
+    .empty{padding:18px;color:#718187;text-align:center}
+    @media(max-width:600px){header{padding:18px}main{margin:18px auto}.panel{padding:16px}.student{align-items:flex-start}}
+  </style>
 </head>
 <body>
 <header>
- <div>
   <h1>DREQ — Administration</h1>
-  <p>Espace privé de gestion de la plateforme</p>
- </div>
- <div>
-  <button class="secondary" onclick="toggleTheme()">Mode clair / sombre</button>
-  <button class="danger" onclick="logout()">Déconnexion</button>
- </div>
+  <button class="secondary" id="logoutBtn">Déconnexion</button>
 </header>
 
 <main>
- <div id="loading" class="card">Vérification de votre accès...</div>
-
- <div id="adminArea" class="hidden">
-  <div class="card">
-   <h2>Bienvenue dans l'administration</h2>
-   <p class="status">Connectée en tant que : <strong id="adminEmail"></strong></p>
-  </div>
-
-  <div class="tabs">
-   <button class="active" onclick="showTab('students',this)">Étudiants et accès</button>
-   <button onclick="showTab('modules',this)">Modules</button>
-   <button onclick="showTab('courses',this)">Cours</button>
-  </div>
-
-  <section id="students" class="tab active">
-   <div class="card">
-    <h2>Activer les semestres des étudiants</h2>
-    <p class="status">Coche S1 et/ou S3 selon le paiement de chaque étudiant. Les autres semestres ne sont pas proposés.</p>
-    <input id="studentSearch" placeholder="Rechercher un étudiant par nom ou email..." oninput="filterStudents()">
-    <div id="studentsList">Chargement des étudiants...</div>
-   </div>
+  <section class="panel">
+    <h2>Gestion des accès étudiants</h2>
+    <p>Active ou désactive l'accès aux semestres S1 et S3 après vérification du paiement.</p>
+    <div id="message"></div>
+    <div class="toolbar">
+      <input id="search" type="text" placeholder="Rechercher un étudiant..."
+        style="padding:11px;border:1px solid #d4dfe1;border-radius:8px;flex:1;min-width:180px">
+      <button id="refreshBtn" class="secondary">Actualiser</button>
+    </div>
+    <div id="students"><div class="empty">Chargement des étudiants...</div></div>
   </section>
-
-  <section id="modules" class="tab">
-   <div class="card">
-    <h2>Ajouter un module</h2>
-    <label>Semestre</label>
-    <select id="moduleSemester"></select>
-    <label>Nom du module</label>
-    <input id="moduleName" placeholder="Ex : Biologie cellulaire">
-    <label>Lien de l'image du module (facultatif)</label>
-    <input id="moduleImage" placeholder="https://...">
-    <button onclick="addModule()">Ajouter le module</button>
-   </div>
-   <div class="card">
-    <h2>Modules existants</h2>
-    <div id="modulesList">Chargement...</div>
-   </div>
-  </section>
-
-  <section id="courses" class="tab">
-   <div class="card">
-    <h2>Ajouter un cours</h2>
-    <label>Module</label>
-    <select id="courseModule"></select>
-    <label>Nom du cours</label>
-    <input id="courseName" placeholder="Ex : Membrane plasmique">
-    <button onclick="addCourse()">Ajouter le cours</button>
-   </div>
-   <div class="card">
-    <h2>Cours existants</h2>
-    <div id="coursesList">Chargement...</div>
-   </div>
-  </section>
- </div>
 </main>
 
 <script>
 const SUPABASE_URL = "https://ttrunryfmwtantycmkor.supabase.co";
-const SUPABASE_KEY = "sb_publishable_pv7eoks18qa19-DBSVxBKg_jE8m_OVI";
+const SUPABASE_ANON_KEY = "sb_publishable_pv7eoks18qa19-DBSVxBKg_jE8m_OVI";
 const ADMIN_EMAIL = "alialiamal2024@gmail.com";
 
-const db = window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-
-let currentUser = null;
-let semesters = [];
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let students = [];
-let modules = [];
-let courses = [];
+let semesters = [];
+let accessRows = [];
 
-function toggleTheme(){
- document.body.classList.toggle("dark");
- localStorage.setItem("dreq-admin-theme",document.body.classList.contains("dark")?"dark":"light");
-}
-if(localStorage.getItem("dreq-admin-theme")==="dark")document.body.classList.add("dark");
+const $ = id => document.getElementById(id);
 
-function showTab(id,button){
- document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
- document.querySelectorAll(".tabs button").forEach(x=>x.classList.remove("active"));
- document.getElementById(id).classList.add("active");
- button.classList.add("active");
+function message(text, type="success") {
+  const el = $("message");
+  el.textContent = text;
+  el.className = type;
 }
 
-function message(text){
- alert(text);
+function hideMessage() {
+  $("message").style.display = "none";
+  $("message").className = "";
 }
 
-async function init(){
- const {data:{session},error}=await db.auth.getSession();
- if(error || !session){
-  document.getElementById("loading").innerHTML='Vous devez vous connecter. <a href="index.html">Retour à la connexion</a>';
-  return;
- }
-
- currentUser=session.user;
- if((currentUser.email||"").toLowerCase()!==ADMIN_EMAIL.toLowerCase()){
-  document.getElementById("loading").innerHTML="Accès refusé : cette page est réservée à l'administration.";
-  return;
- }
-
- document.getElementById("adminEmail").textContent=currentUser.email;
- document.getElementById("loading").classList.add("hidden");
- document.getElementById("adminArea").classList.remove("hidden");
-
- await loadSemesters();
- await loadStudents();
- await loadModules();
- await loadCourses();
+function semesterCode(s) {
+  const value = String(s.code || s.name || s.title || s.label || "").toUpperCase().replace(/\s/g,"");
+  if (value.includes("S1") || value.includes("SEMESTRE1")) return "S1";
+  if (value.includes("S3") || value.includes("SEMESTRE3")) return "S3";
+  return "";
 }
 
-async function loadSemesters(){
- const {data,error}=await db.from("semesters").select("*");
- if(error){message("Erreur chargement semestres : "+error.message);return;}
+async function start() {
+  const { data: { session }, error } = await db.auth.getSession();
 
- semesters=(data||[]).filter(s=>{
-  const value=String(s.code||s.name||s.title||"").toUpperCase().replace(/\s/g,"");
-  return value==="S1"||value==="S3"||value.includes("SEMESTRE1")||value.includes("SEMESTRE3");
- });
-
- const select=document.getElementById("moduleSemester");
- select.innerHTML="";
- semesters.forEach(s=>{
-  const opt=document.createElement("option");
-  opt.value=s.id;
-  opt.textContent=s.code||s.name||s.title;
-  select.appendChild(opt);
- });
-}
-
-async function loadStudents(){
- const box=document.getElementById("studentsList");
- const {data,error}=await db.from("profiles").select("*");
- if(error){box.textContent="Erreur : "+error.message;return;}
-
- students=(data||[]).filter(s=>
-  s.id!==currentUser.id && String(s.role||"student").toLowerCase()!=="admin"
- );
- renderStudents();
-}
-
-function renderStudents(){
- const box=document.getElementById("studentsList");
- box.innerHTML="";
- const search=(document.getElementById("studentSearch").value||"").toLowerCase();
- const filtered=students.filter(s=>
-  String(s.full_name||"").toLowerCase().includes(search)||
-  String(s.email||"").toLowerCase().includes(search)
- );
-
- if(!filtered.length){box.textContent="Aucun étudiant trouvé.";return;}
-
- filtered.forEach(async student=>{
-  const card=document.createElement("div");
-  card.className="card";
-  card.style.marginTop="12px";
-  card.innerHTML=`
-   <strong>${escapeHTML(student.full_name||"Étudiant")}</strong>
-   <p class="status">${escapeHTML(student.email||"Email non disponible")}</p>
-   <div id="access-${student.id}">Chargement des accès...</div>
-   <button style="margin-top:12px" onclick="saveAccess('${student.id}')">Enregistrer les accès</button>
-  `;
-  box.appendChild(card);
-  await renderStudentAccess(student.id);
- });
-}
-
-function filterStudents(){renderStudents();}
-
-async function renderStudentAccess(studentId){
- const container=document.getElementById("access-"+studentId);
- if(!container)return;
-
- const {data,error}=await db.from("student_access")
-  .select("*").eq("student_id",studentId);
-
- if(error){container.textContent="Erreur d'accès : "+error.message;return;}
-
- container.innerHTML="";
- semesters.forEach(semester=>{
-  const access=(data||[]).find(a=>a.semester_id===semester.id);
-  const enabled=access ? access.enabled===true : false;
-  const label=document.createElement("label");
-  label.className="semester";
-  label.innerHTML=`
-   <span>${escapeHTML(semester.code||semester.name||semester.title)}</span>
-   <input type="checkbox" class="access-check" data-semester="${semester.id}" ${enabled?"checked":""}>
-  `;
-  container.appendChild(label);
- });
-}
-
-async function saveAccess(studentId){
- const container=document.getElementById("access-"+studentId);
- if(!container)return;
-
- const checks=container.querySelectorAll(".access-check");
- for(const check of checks){
-  const semesterId=check.dataset.semester;
-  const enabled=check.checked;
-
-  const {data:existing,error:readError}=await db.from("student_access")
-   .select("*").eq("student_id",studentId).eq("semester_id",semesterId);
-
-  if(readError){message("Erreur lecture accès : "+readError.message);return;}
-
-  if(existing && existing.length){
-   const {error}=await db.from("student_access")
-    .update({enabled:enabled})
-    .eq("student_id",studentId).eq("semester_id",semesterId);
-   if(error){message("Erreur mise à jour : "+error.message);return;}
-  }else if(enabled){
-   const {error}=await db.from("student_access")
-    .insert({student_id:studentId,semester_id:semesterId,enabled:true});
-   if(error){message("Erreur activation : "+error.message);return;}
+  if (error || !session) {
+    document.body.innerHTML = "<main><section class='panel'><h2>Connexion nécessaire</h2><p>Connecte-toi depuis la page principale DREQ avec le compte administrateur.</p><button onclick=\"location.href='index.html'\">Retour à l'accueil</button></section></main>";
+    return;
   }
- }
- message("Les accès de cet étudiant ont été enregistrés.");
- await loadStudents();
+
+  if ((session.user.email || "").toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
+    document.body.innerHTML = "<main><section class='panel'><h2>Accès refusé</h2><p>Cette page est réservée à l'administratrice.</p><button onclick=\"location.href='index.html'\">Retour</button></section></main>";
+    return;
+  }
+
+  await loadData();
 }
 
-async function loadModules(){
- const box=document.getElementById("modulesList");
- const {data,error}=await db.from("modules").select("*");
- if(error){box.textContent="Erreur : "+error.message;return;}
- modules=data||[];
+async function loadData() {
+  hideMessage();
+  $("students").innerHTML = "<div class='empty'>Chargement...</div>";
 
- const select=document.getElementById("courseModule");
- select.innerHTML="";
- modules.forEach(m=>{
-  const opt=document.createElement("option");
-  opt.value=m.id;
-  opt.textContent=m.name||m.title||"Module";
-  select.appendChild(opt);
- });
+  const [profilesResult, semestersResult, accessResult] = await Promise.all([
+    db.from("profiles").select("*"),
+    db.from("semesters").select("*"),
+    db.from("student_access").select("*")
+  ]);
 
- if(!modules.length){box.textContent="Aucun module pour le moment.";return;}
- box.innerHTML="";
- modules.forEach(m=>{
-  const item=document.createElement("div");
-  item.className="semester";
-  item.innerHTML=`<span><strong>${escapeHTML(m.name||m.title||"Module")}</strong></span>
-  <button class="danger" onclick="deleteModule('${m.id}')">Supprimer</button>`;
-  box.appendChild(item);
- });
+  if (profilesResult.error) {
+    message("Erreur lors du chargement des étudiants : " + profilesResult.error.message, "error");
+    $("students").innerHTML = "";
+    return;
+  }
+  if (semestersResult.error) {
+    message("Erreur lors du chargement des semestres : " + semestersResult.error.message, "error");
+    $("students").innerHTML = "";
+    return;
+  }
+  if (accessResult.error) {
+    message("Erreur lors du chargement des accès : " + accessResult.error.message, "error");
+    $("students").innerHTML = "";
+    return;
+  }
+
+  students = (profilesResult.data || []).filter(p =>
+    String(p.email || "").toLowerCase() !== ADMIN_EMAIL.toLowerCase()
+  );
+  semesters = (semestersResult.data || []).filter(s => ["S1","S3"].includes(semesterCode(s)));
+  accessRows = accessResult.data || [];
+
+  if (!semesters.length) {
+    message("Je ne trouve pas S1 et S3 dans la table semesters. Vérifie que leurs noms ou codes sont bien S1 et S3.", "error");
+  }
+
+  renderStudents();
 }
 
-async function addModule(){
- const semesterId=document.getElementById("moduleSemester").value;
- const name=document.getElementById("moduleName").value.trim();
- const imageUrl=document.getElementById("moduleImage").value.trim();
-
- if(!semesterId||!name){message("Choisissez un semestre et saisissez le nom du module.");return;}
-
- const {error}=await db.from("modules").insert({
-  semester_id:semesterId,
-  name:name,
-  image_url:imageUrl||null
- });
- if(error){message("Impossible d'ajouter le module : "+error.message);return;}
-
- document.getElementById("moduleName").value="";
- document.getElementById("moduleImage").value="";
- message("Module ajouté.");
- await loadModules();
+function hasAccess(studentId, semesterId) {
+  return accessRows.some(a =>
+    String(a.student_id) === String(studentId) &&
+    String(a.semester_id) === String(semesterId) &&
+    a.enabled === true
+  );
 }
 
-async function deleteModule(id){
- if(!confirm("Supprimer ce module ?"))return;
- const {error}=await db.from("modules").delete().eq("id",id);
- if(error){message("Erreur suppression : "+error.message);return;}
- message("Module supprimé.");
- await loadModules();
- await loadCourses();
+function renderStudents() {
+  const term = $("search").value.trim().toLowerCase();
+  const filtered = students.filter(s =>
+    String(s.full_name || "").toLowerCase().includes(term) ||
+    String(s.email || "").toLowerCase().includes(term)
+  );
+
+  if (!filtered.length) {
+    $("students").innerHTML = "<div class='empty'>Aucun étudiant trouvé.</div>";
+    return;
+  }
+
+  $("students").innerHTML = "";
+
+  filtered.forEach(student => {
+    const card = document.createElement("div");
+    card.className = "student";
+
+    const info = document.createElement("div");
+    const name = document.createElement("strong");
+    name.textContent = student.full_name || "Étudiant";
+    const email = document.createElement("div");
+    email.className = "email";
+    email.textContent = student.email || "";
+    info.append(name, email);
+
+    const controls = document.createElement("div");
+    controls.className = "access";
+
+    ["S1","S3"].forEach(code => {
+      const semester = semesters.find(s => semesterCode(s) === code);
+      const btn = document.createElement("button");
+
+      if (!semester) {
+        btn.textContent = code + " indisponible";
+        btn.disabled = true;
+        btn.className = "off";
+      } else {
+        const active = hasAccess(student.id, semester.id);
+        btn.textContent = code + (active ? " — Activé" : " — Désactivé");
+        btn.className = active ? "on" : "off";
+        btn.addEventListener("click", () =>
+          changeAccess(student.id, semester.id, !active, btn)
+        );
+      }
+      controls.appendChild(btn);
+    });
+
+    card.append(info, controls);
+    $("students").appendChild(card);
+  });
 }
 
-async function loadCourses(){
- const box=document.getElementById("coursesList");
- const {data,error}=await db.from("courses").select("*");
- if(error){box.textContent="Table courses indisponible : "+error.message;return;}
- courses=data||[];
- if(!courses.length){box.textContent="Aucun cours pour le moment.";return;}
+async function changeAccess(studentId, semesterId, enable, button) {
+  button.disabled = true;
+  hideMessage();
 
- box.innerHTML="";
- courses.forEach(c=>{
-  const module=modules.find(m=>m.id===c.module_id);
-  const item=document.createElement("div");
-  item.className="semester";
-  item.innerHTML=`<span><strong>${escapeHTML(c.name||c.title||"Cours")}</strong><br><small>${escapeHTML(module?.name||module?.title||"Module")}</small></span>
-  <button class="danger" onclick="deleteCourse('${c.id}')">Supprimer</button>`;
-  box.appendChild(item);
- });
+  const existing = accessRows.find(a =>
+    String(a.student_id) === String(studentId) &&
+    String(a.semester_id) === String(semesterId)
+  );
+
+  let result;
+
+  if (existing) {
+    result = await db.from("student_access")
+      .update({ enabled: enable })
+      .eq("student_id", studentId)
+      .eq("semester_id", semesterId);
+  } else {
+    result = await db.from("student_access").insert({
+      student_id: studentId,
+      semester_id: semesterId,
+      enabled: enable,
+      granted_at: new Date().toISOString()
+    });
+  }
+
+  button.disabled = false;
+
+  if (result.error) {
+    message("Impossible de modifier l'accès : " + result.error.message, "error");
+    return;
+  }
+
+  message("Accès " + (enable ? "activé" : "désactivé") + " avec succès.");
+  await loadData();
 }
 
-async function addCourse(){
- const moduleId=document.getElementById("courseModule").value;
- const name=document.getElementById("courseName").value.trim();
- if(!moduleId||!name){message("Choisissez un module et saisissez le nom du cours.");return;}
+$("search").addEventListener("input", renderStudents);
+$("refreshBtn").addEventListener("click", loadData);
 
- const {error}=await db.from("courses").insert({module_id:moduleId,name:name});
- if(error){message("Impossible d'ajouter le cours : "+error.message);return;}
- document.getElementById("courseName").value="";
- message("Cours ajouté.");
- await loadCourses();
-}
+$("logoutBtn").addEventListener("click", async () => {
+  await db.auth.signOut();
+  location.href = "index.html";
+});
 
-async function deleteCourse(id){
- if(!confirm("Supprimer ce cours ?"))return;
- const {error}=await db.from("courses").delete().eq("id",id);
- if(error){message("Erreur suppression : "+error.message);return;}
- message("Cours supprimé.");
- await loadCourses();
-}
-
-function escapeHTML(value){
- return String(value??"").replace(/[&<>"']/g,c=>({
-  "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
- }[c]));
-}
-
-async function logout(){
- await db.auth.signOut();
- location.href="index.html";
-}
-
-init();
+start();
 </script>
 </body>
 </html>
