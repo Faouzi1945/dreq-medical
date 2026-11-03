@@ -598,7 +598,9 @@ async function loadUserInterface(user) {
   $("studentEmail").textContent = user.email || "";
 
   const isAdmin =
-    (user.email || "").toLowerCase() === ADMIN_EMAIL.toLowerCase();
+   (user.email || "").toLowerCase() === ADMIN_EMAIL.toLowerCase();
+window.location.href = isAdmin ? "admin.html" : "student.html";
+return;
 
   if (isAdmin) {
     $("adminDashboard").classList.remove("hidden");
