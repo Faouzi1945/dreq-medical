@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -7,577 +8,509 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{
---bg:#f5f8f8;--surface:#fff;--text:#19363b;--muted:#71868a;
---line:#e3eceb;--navy:#123c46;--teal:#176b70;--mint:#45b8a5;
---pale:#d9f0ec;--danger:#b84650;--shadow:0 8px 28px rgba(18,60,70,.07)
+  --navy:#123C46;--teal:#176B70;--mint:#45B8A5;
+  --pale:#D9F0EC;--bg:#F5F8F8;--card:#fff;
+  --text:#19363B;--muted:#71868A;--line:#E3ECEB;
+  --shadow:0 8px 28px rgba(18,60,70,.07);
 }
 body.dark{
---bg:#0d1b22;--surface:#142a32;--text:#edf7f5;--muted:#a5bbb9;
---line:#29434a;--navy:#d8eeeb;--teal:#65c7b7;--mint:#65c7b7;
---pale:#1d4548;--danger:#ff858b;--shadow:0 8px 28px rgba(0,0,0,.18)
+  --navy:#D9F0EC;--teal:#45B8A5;--mint:#45B8A5;
+  --pale:#183B43;--bg:#0C1C23;--card:#142B33;
+  --text:#EDF7F5;--muted:#A9C0C0;--line:#29454B;
+  --shadow:0 8px 28px rgba(0,0,0,.2);
 }
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,Arial,sans-serif;transition:background .2s,color .2s}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,sans-serif;transition:.2s}
 button,input{font:inherit}
-button{cursor:pointer;border:0;border-radius:11px;padding:11px 15px;font-weight:700;background:var(--teal);color:white}
-button:disabled{opacity:.5;cursor:not-allowed}
-.secondary{background:transparent;color:var(--text);border:1px solid var(--line)}
-header{min-height:74px;padding:14px max(18px,calc((100% - 1120px)/2));background:var(--surface);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:14px;position:sticky;top:0;z-index:5}
-.logo{font-size:25px;font-weight:900;letter-spacing:2px;color:var(--teal)}
-.header-actions{display:flex;gap:8px;flex-wrap:wrap}
-main{max-width:1120px;margin:30px auto;padding:0 18px 55px}
+button{cursor:pointer}
+header{
+  padding:18px 5%;background:var(--card);
+  border-bottom:1px solid var(--line);
+  display:flex;justify-content:space-between;
+  align-items:center;gap:12px;flex-wrap:wrap;
+}
+.logo{font-size:27px;font-weight:900;letter-spacing:3px;color:var(--teal)}
+.logo small{display:block;font-size:10px;letter-spacing:2px;color:var(--muted)}
+.header-actions{display:flex;gap:9px}
+button{
+  border:0;border-radius:10px;padding:12px 17px;
+  background:var(--teal);color:white;font-weight:700;
+}
+button.secondary{background:var(--card);color:var(--text);border:1px solid var(--line)}
+button:hover{opacity:.88}
+main{max-width:1150px;margin:32px auto;padding:0 18px;min-height:70vh}
+.card{
+  background:var(--card);border:1px solid var(--line);
+  border-radius:17px;padding:22px;margin-bottom:18px;
+  box-shadow:var(--shadow);
+}
+h1,h2,h3{color:var(--text);margin-top:0}
+.muted{color:var(--muted);line-height:1.7}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:17px}
+.semester{
+  background:var(--card);border:1px solid var(--line);
+  color:var(--teal);border-radius:16px;padding:25px;
+  text-align:center;font-size:23px;font-weight:800;
+  box-shadow:var(--shadow);min-height:110px;
+}
+.module{
+  background:var(--card);border:1px solid var(--line);
+  border-radius:16px;overflow:hidden;cursor:pointer;
+  box-shadow:var(--shadow);transition:.2s;
+}
+.module:hover,.course:hover{transform:translateY(-3px)}
+.module img{width:100%;height:155px;object-fit:cover;background:var(--pale)}
+.module-info{padding:17px}
+.module-info h3{margin:0 0 8px}
+.course{
+  display:flex;justify-content:space-between;align-items:center;
+  gap:15px;background:var(--card);border:1px solid var(--line);
+  border-radius:14px;padding:17px;margin:12px 0;
+  transition:.2s;box-shadow:var(--shadow);
+}
+.course img{width:75px;height:65px;object-fit:cover;border-radius:9px}
+.course-info{flex:1}
+.course-info h3{font-size:16px;margin:0 0 7px}
+.back{margin-bottom:17px}
+input{
+  width:100%;padding:13px;margin:7px 0 14px;
+  border:1px solid var(--line);border-radius:10px;
+  background:var(--bg);color:var(--text);
+}
 .hidden{display:none!important}
-.panel,.tile,.question{background:var(--surface);border:1px solid var(--line);border-radius:17px;box-shadow:var(--shadow)}
-.panel{padding:22px;margin-bottom:18px}
-.muted{color:var(--muted);line-height:1.6}
-.eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--teal);font-weight:800}
-h1{font-size:clamp(23px,4vw,32px);margin:8px 0}
-h2{font-size:21px;margin:0 0 8px}
-h3{font-size:17px;margin:0 0 7px}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
-.tile{overflow:hidden;text-align:left;padding:0;color:var(--text);background:var(--surface);border:1px solid var(--line);width:100%;transition:transform .15s,border-color .15s}
-.tile:hover{transform:translateY(-2px);border-color:var(--mint)}
-.tile img{display:block;width:100%;height:145px;object-fit:cover;background:var(--pale)}
-.tile-body{padding:17px}
-.tile p{font-size:13px;color:var(--muted);line-height:1.5;margin:5px 0 0}
-.course-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:16px 0;border-bottom:1px solid var(--line)}
-.course-row:last-child{border:0}
-.course-row p{margin:5px 0 0;font-size:13px;color:var(--muted)}
-input{width:100%;padding:13px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--text);margin:7px 0 14px}
-label{font-size:13px;font-weight:700}
-.login{max-width:430px;margin:8vh auto}
-#message{margin:12px 0;color:var(--teal);font-size:14px}
-.back{margin-bottom:15px}
-.question{padding:20px;margin:15px 0}
-.qtop{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
-.tag{font-size:11px;font-weight:800;color:var(--teal);background:var(--pale);border-radius:30px;padding:6px 10px}
-.option{display:flex;align-items:flex-start;gap:11px;border:1px solid var(--line);border-radius:11px;padding:12px;margin:9px 0;cursor:pointer}
-.option input{width:auto;margin:3px 0 0;accent-color:var(--teal)}
-.option.correct{border-color:#24966f;background:rgba(36,150,111,.09)}
-.option.wrong{border-color:var(--danger);background:rgba(184,70,80,.08)}
-.feedback{padding:13px;border-radius:11px;background:var(--pale);margin-top:13px;line-height:1.6;font-size:14px;white-space:pre-wrap}
-.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px}
-.empty{padding:30px;text-align:center;color:var(--muted);background:var(--surface);border:1px dashed var(--line);border-radius:15px}
-footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
+#message{margin:12px 0;color:var(--teal);line-height:1.6}
+.lesson-content{
+  white-space:pre-wrap;line-height:1.9;
+  overflow-wrap:anywhere;font-size:15px;
+}
+.question{margin:16px 0;padding:20px;border:1px solid var(--line);border-radius:14px;background:var(--card)}
+.question h3{font-size:16px;line-height:1.6}
+.answer{
+  display:flex;gap:10px;align-items:flex-start;
+  padding:12px;border:1px solid var(--line);
+  border-radius:9px;margin:9px 0;cursor:pointer;
+}
+.answer input{width:auto;margin:3px 0}
+.result{margin-top:12px;padding:12px;border-radius:9px;line-height:1.7}
+.good{background:#D9F0EC;color:#176B70}
+.bad{background:#FCEBED;color:#A83E49}
+.empty{text-align:center;padding:30px;color:var(--muted)}
+.pdf-link{display:inline-block;margin:12px 0;color:var(--teal);font-weight:bold}
+footer{text-align:center;padding:30px;color:var(--muted);font-size:12px}
 @media(max-width:600px){
-header{padding:12px 15px}.logo{font-size:21px}
-.panel{padding:17px}
-.course-row{align-items:flex-start;flex-direction:column}
-.course-row button{width:100%}
+  main{margin:20px auto}
+  .course{align-items:flex-start;flex-wrap:wrap}
+  .course button{width:100%}
 }
 </style>
 </head>
-
 <body>
+
 <header>
-<div class="logo">DREQ</div>
-<div class="header-actions">
-<button class="secondary" id="themeBtn" type="button">☀ Mode clair</button>
-<button class="secondary hidden" id="logoutBtn" type="button">Déconnexion</button>
-</div>
+  <div class="logo">DREQ<small>MEDICAL LEARNING</small></div>
+  <div class="header-actions">
+    <button class="secondary" id="themeBtn">☀ / ☾</button>
+    <button class="secondary" id="logoutBtn">Déconnexion</button>
+  </div>
 </header>
 
 <main>
-<div id="message" role="status"></div>
+<div id="message"></div>
 
-<section id="login" class="panel login hidden">
-<div class="eyebrow">Espace étudiant</div>
-<h1>Bienvenue sur DREQ</h1>
-<p class="muted">Connecte-toi pour retrouver les semestres activés pour ton compte.</p>
-
-<label for="email">Adresse e-mail</label>
-<input id="email" type="email" autocomplete="username" placeholder="nom@exemple.com">
-
-<label for="password">Mot de passe</label>
-<input id="password" type="password" autocomplete="current-password" placeholder="Mot de passe">
-
-<button id="loginBtn" style="width:100%">Se connecter</button>
+<section id="login" class="card hidden">
+  <h2>Connexion étudiant</h2>
+  <p class="muted">Connecte-toi à ton espace DREQ.</p>
+  <label>E-mail</label>
+  <input id="email" type="email" placeholder="Adresse e-mail">
+  <label>Mot de passe</label>
+  <input id="password" type="password" placeholder="Mot de passe">
+  <button id="loginBtn">Se connecter</button>
 </section>
 
 <section id="home" class="hidden">
-<div class="panel">
-<div class="eyebrow">Mon espace</div>
-<h1>Mes semestres</h1>
-<p class="muted">Choisis un semestre pour accéder à ses modules et à leurs cours.</p>
-<div id="studentEmail" class="muted"></div>
-</div>
-<div id="semesters" class="grid"></div>
+  <div class="card">
+    <h1>Bonjour 👋</h1>
+    <p class="muted" id="studentEmail"></p>
+    <h2>Mes semestres</h2>
+  </div>
+  <div id="semesters" class="grid"></div>
 </section>
 
 <section id="modulesPage" class="hidden">
-<button class="secondary back" id="backHome">← Mes semestres</button>
-<div class="panel">
-<div class="eyebrow">Semestre sélectionné</div>
-<h1 id="semesterTitle">Modules</h1>
-<p class="muted">Choisis un module pour consulter ses cours.</p>
-</div>
-<div id="modules" class="grid"></div>
+  <button class="secondary back" onclick="showHome()">← Retour</button>
+  <div class="card">
+    <h1 id="semesterTitle">Modules</h1>
+    <p class="muted">Choisis un module.</p>
+  </div>
+  <div id="modules" class="grid"></div>
 </section>
 
 <section id="coursesPage" class="hidden">
-<button class="secondary back" id="backModules">← Modules</button>
-<div class="panel">
-<div class="eyebrow">Module sélectionné</div>
-<h1 id="moduleTitle">Cours</h1>
-<p class="muted">Ouvre un cours pour lire son contenu et faire les QCM/QCU.</p>
-</div>
-<div id="courses" class="panel"></div>
+  <button class="secondary back" onclick="showModules()">← Retour</button>
+  <div class="card">
+    <h1 id="moduleTitle">Cours</h1>
+  </div>
+  <div id="courses"></div>
 </section>
 
-<section id="readerPage" class="hidden">
-<button class="secondary back" id="backCourses">← Cours du module</button>
-<div class="panel">
-<div class="eyebrow">Lecture du cours</div>
-<h1 id="readerTitle"></h1>
-<p id="readerDescription" class="muted"></p>
-<div id="readerContent" style="white-space:pre-wrap;line-height:1.8"></div>
-<div id="readerPdf" class="actions"></div>
-</div>
-
-<div class="panel">
-<div class="eyebrow">Entraînement</div>
-<h2>QCM / QCU du cours</h2>
-<p class="muted">Sélectionne tes réponses puis valide pour afficher la correction.</p>
-<div id="questions"></div>
-</div>
+<section id="lessonPage" class="hidden">
+  <button class="secondary back" onclick="showCourses()">← Retour aux cours</button>
+  <div class="card">
+    <h1 id="lessonTitle">Cours</h1>
+    <p id="lessonDescription" class="muted"></p>
+    <div id="lessonContent" class="lesson-content"></div>
+    <a id="lessonPdf" class="pdf-link hidden" target="_blank" rel="noopener">📄 Consulter le document PDF</a>
+  </div>
+  <div class="card">
+    <h2>QCM / QCU</h2>
+    <div id="lessonQuestions"></div>
+  </div>
 </section>
+
 </main>
-
 <footer>© 2026 DREQ Medical Learning</footer>
 
 <script>
 const SUPABASE_URL="https://ttrunryfmwtantycmkor.supabase.co";
 const SUPABASE_KEY="sb_publishable_pv7eoks18qa19-DBSVxBKg_jE8m_OVI";
-
 const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
 const $=id=>document.getElementById(id);
-
 let currentSemester=null;
 let currentModule=null;
 let currentCourse=null;
 
-function say(t){
-$("message").textContent=t||"";
-}
-
+function msg(t){$("message").textContent=t}
 function hidePages(){
-["login","home","modulesPage","coursesPage","readerPage"]
-.forEach(id=>$(id).classList.add("hidden"));
+  ["login","home","modulesPage","coursesPage","lessonPage"]
+  .forEach(id=>$(id).classList.add("hidden"));
 }
-
-function show(id){
-hidePages();
-$(id).classList.remove("hidden");
-say("");
+function showHome(){
+  hidePages();
+  $("home").classList.remove("hidden");
 }
-
-function setTheme(dark){
-document.body.classList.toggle("dark",dark);
-localStorage.setItem("dreq-theme",dark?"dark":"light");
-$("themeBtn").textContent=dark?"☾ Mode sombre":"☀ Mode clair";
+function showModules(){
+  hidePages();
+  $("modulesPage").classList.remove("hidden");
 }
-
-$("themeBtn").onclick=()=>{
-setTheme(!document.body.classList.contains("dark"));
-};
-
-setTheme(localStorage.getItem("dreq-theme")==="dark");
-
-$("backHome").onclick=()=>show("home");
-$("backModules").onclick=()=>show("modulesPage");
-$("backCourses").onclick=()=>show("coursesPage");
+function showCourses(){
+  hidePages();
+  $("coursesPage").classList.remove("hidden");
+}
+function theme(){
+  const dark=document.body.classList.toggle("dark");
+  localStorage.setItem("dreq-theme",dark?"dark":"light");
+}
+$("themeBtn").onclick=theme;
+if(localStorage.getItem("dreq-theme")==="dark"){
+  document.body.classList.add("dark");
+}
 
 $("loginBtn").onclick=async()=>{
-const email=$("email").value.trim();
-const password=$("password").value;
-
-if(!email||!password){
-return say("Entre ton adresse e-mail et ton mot de passe.");
-}
-
-$("loginBtn").disabled=true;
-
-const {error}=await db.auth.signInWithPassword({
-email,password
-});
-
-$("loginBtn").disabled=false;
-
-if(error){
-return say("Connexion impossible : "+error.message);
-}
-
-await start();
+  const email=$("email").value.trim();
+  const password=$("password").value;
+  if(!email||!password)return msg("Entre ton e-mail et ton mot de passe.");
+  msg("Connexion...");
+  const {error}=await db.auth.signInWithPassword({email,password});
+  if(error)return msg(error.message);
+  await start();
 };
 
 $("logoutBtn").onclick=async()=>{
-await db.auth.signOut();
-$("logoutBtn").classList.add("hidden");
-show("login");
-say("Tu es déconnecté.");
+  await db.auth.signOut();
+  hidePages();
+  $("login").classList.remove("hidden");
+  msg("Tu es déconnecté.");
 };
 
 async function start(){
-const {data:{user},error}=await db.auth.getUser();
-
-if(error||!user){
-$("logoutBtn").classList.add("hidden");
-show("login");
-return;
-}
-
-$("logoutBtn").classList.remove("hidden");
-$("studentEmail").textContent=user.email||"";
-
-await loadSemesters(user.id);
-}
-
-function empty(target,message){
-$(target).innerHTML="";
-const d=document.createElement("div");
-d.className="empty";
-d.textContent=message;
-$(target).appendChild(d);
-}
-
-function tile(title,description,image,callback){
-const b=document.createElement("button");
-b.type="button";
-b.className="tile";
-
-if(image){
-const img=document.createElement("img");
-img.src=image;
-img.alt="";
-img.onerror=()=>img.remove();
-b.appendChild(img);
-}
-
-const body=document.createElement("div");
-body.className="tile-body";
-
-const h=document.createElement("h3");
-h.textContent=title;
-
-const p=document.createElement("p");
-p.textContent=description||"Consulter →";
-
-body.append(h,p);
-b.appendChild(body);
-b.onclick=callback;
-
-return b;
+  const {data:{user}}=await db.auth.getUser();
+  if(!user){
+    hidePages();
+    $("login").classList.remove("hidden");
+    return;
+  }
+  $("studentEmail").textContent=user.email||"";
+  await loadSemesters(user.id);
 }
 
 async function loadSemesters(userId){
-show("home");
-empty("semesters","Chargement des semestres…");
+  hidePages();
+  $("home").classList.remove("hidden");
+  $("semesters").innerHTML="Chargement...";
+  msg("");
 
-const {data:access,error}=await db
-.from("student_access")
-.select("semester_id")
-.eq("student_id",userId)
-.eq("enabled",true);
+  const {data:access,error}=await db.from("student_access")
+    .select("semester_id")
+    .eq("student_id",userId)
+    .eq("enabled",true);
 
-if(error){
-say("Impossible de lire tes accès : "+error.message);
-empty("semesters","Erreur de chargement.");
-return;
-}
+  if(error){
+    $("semesters").innerHTML="";
+    msg("Erreur de chargement : "+error.message);
+    return;
+  }
 
-const ids=[...new Set((access||[])
-.map(x=>x.semester_id).filter(Boolean))];
+  if(!access||access.length===0){
+    $("semesters").innerHTML="<div class='empty'>Aucun semestre disponible.</div>";
+    return;
+  }
 
-if(!ids.length){
-empty("semesters","Aucun semestre n’est activé pour ton compte. Contacte l’administration.");
-return;
-}
+  const ids=access.map(a=>a.semester_id);
+  const {data:semesters,error:semError}=await db.from("semesters")
+    .select("*")
+    .in("id",ids)
+    .eq("is_published",true);
 
-const {data,error:semError}=await db
-.from("semesters")
-.select("*")
-.in("id",ids)
-.eq("is_published",true);
+  if(semError){
+    $("semesters").innerHTML="";
+    msg("Erreur : "+semError.message);
+    return;
+  }
 
-if(semError){
-say("Erreur semestres : "+semError.message);
-empty("semesters","Impossible de charger les semestres.");
-return;
-}
+  $("semesters").innerHTML="";
+  if(!semesters||!semesters.length){
+    $("semesters").innerHTML="<div class='empty'>Aucun semestre disponible.</div>";
+    return;
+  }
 
-$("semesters").innerHTML="";
-
-if(!data?.length){
-empty("semesters","Aucun semestre publié pour le moment.");
-return;
-}
-
-data.forEach(s=>{
-$("semesters").appendChild(
-tile(s.name||s.code||"Semestre","Accès activé",null,()=>openSemester(s))
-);
-});
+  semesters.forEach(s=>{
+    const button=document.createElement("button");
+    button.className="semester";
+    button.textContent=s.code||s.name||"Semestre";
+    button.onclick=()=>openSemester(s);
+    $("semesters").appendChild(button);
+  });
 }
 
 async function openSemester(semester){
-currentSemester=semester;
+  currentSemester=semester;
+  $("semesterTitle").textContent=semester.name||semester.code||"Modules";
+  showModules();
+  $("modules").innerHTML="Chargement...";
 
-$("semesterTitle").textContent=semester.name||semester.code||"Modules";
+  const {data,error}=await db.from("modules")
+    .select("*")
+    .eq("semester_id",semester.id)
+    .eq("is_published",true);
 
-show("modulesPage");
-empty("modules","Chargement des modules…");
+  if(error){
+    $("modules").textContent="Erreur : "+error.message;
+    return;
+  }
 
-const {data,error}=await db
-.from("modules")
-.select("*")
-.eq("semester_id",semester.id)
-.eq("is_published",true)
-.order("id");
+  $("modules").innerHTML="";
+  if(!data||!data.length){
+    $("modules").innerHTML="<div class='empty'>Aucun module disponible pour le moment.</div>";
+    return;
+  }
 
-if(error){
-say("Erreur modules : "+error.message);
-empty("modules","Impossible de charger les modules.");
-return;
-}
+  data.forEach(m=>{
+    const article=document.createElement("article");
+    article.className="module";
 
-$("modules").innerHTML="";
+    const img=document.createElement("img");
+    img.src=m.image_url||"https://placehold.co/600x300/EAF3F2/176B70?text=DREQ";
+    img.alt=m.name||"Module";
 
-if(!data?.length){
-empty("modules","Aucun module publié dans ce semestre.");
-return;
-}
+    const info=document.createElement("div");
+    info.className="module-info";
 
-data.forEach(m=>{
-$("modules").appendChild(
-tile(m.name||"Module",m.description,m.image_url,()=>openModule(m))
-);
-});
+    const title=document.createElement("h3");
+    title.textContent=m.name||"Module";
+
+    const description=document.createElement("p");
+    description.className="muted";
+    description.textContent=m.description||"Consulter les cours";
+
+    info.append(title,description);
+    article.append(img,info);
+    article.onclick=()=>openModule(m);
+    $("modules").appendChild(article);
+  });
 }
 
 async function openModule(module){
-currentModule=module;
+  currentModule=module;
+  $("moduleTitle").textContent=module.name||"Cours";
+  showCourses();
+  $("courses").innerHTML="Chargement...";
 
-$("moduleTitle").textContent=module.name||"Cours";
+  const {data,error}=await db.from("courses")
+    .select("*")
+    .eq("module_id",module.id)
+    .eq("is_published",true);
 
-show("coursesPage");
-empty("courses","Chargement des cours…");
+  if(error){
+    $("courses").textContent="Erreur : "+error.message;
+    return;
+  }
 
-const {data,error}=await db
-.from("courses")
-.select("*")
-.eq("module_id",module.id)
-.eq("is_published",true)
-.order("id");
+  $("courses").innerHTML="";
+  if(!data||!data.length){
+    $("courses").innerHTML="<div class='empty'>Aucun cours disponible pour le moment.</div>";
+    return;
+  }
 
-if(error){
-say("Erreur cours : "+error.message);
-empty("courses","Impossible de charger les cours.");
-return;
+  data.forEach(c=>{
+    const article=document.createElement("article");
+    article.className="course";
+
+    if(c.image_url){
+      const img=document.createElement("img");
+      img.src=c.image_url;
+      img.alt=c.name||"Cours";
+      article.appendChild(img);
+    }
+
+    const info=document.createElement("div");
+    info.className="course-info";
+
+    const title=document.createElement("h3");
+    title.textContent=c.name||"Cours";
+
+    const description=document.createElement("p");
+    description.className="muted";
+    description.textContent=c.description||"Consulter le cours";
+
+    info.append(title,description);
+
+    const btn=document.createElement("button");
+    btn.textContent="Ouvrir le cours";
+    btn.onclick=()=>openLesson(c);
+
+    article.append(info,btn);
+    $("courses").appendChild(article);
+  });
 }
 
-$("courses").innerHTML="";
+async function openLesson(course){
+  currentCourse=course;
+  hidePages();
+  $("lessonPage").classList.remove("hidden");
 
-if(!data?.length){
-empty("courses","Aucun cours publié dans ce module.");
-return;
+  $("lessonTitle").textContent=course.name||"Cours";
+  $("lessonDescription").textContent=course.description||"";
+  $("lessonContent").textContent=course.content||"Le contenu de ce cours n'a pas encore été ajouté.";
+
+  const pdf=$("lessonPdf");
+  if(course.file_url){
+    pdf.href=course.file_url;
+    pdf.classList.remove("hidden");
+  }else{
+    pdf.classList.add("hidden");
+  }
+
+  $("lessonQuestions").innerHTML="Chargement des questions...";
+
+  const {data:questions,error}=await db.from("dreq_questions")
+    .select("*")
+    .eq("course_id",course.id)
+    .eq("is_published",true);
+
+  if(error){
+    $("lessonQuestions").textContent="Erreur : "+error.message;
+    return;
+  }
+
+  $("lessonQuestions").innerHTML="";
+
+  if(!questions||!questions.length){
+    $("lessonQuestions").innerHTML="<div class='empty'>Aucune question disponible pour ce cours.</div>";
+    return;
+  }
+
+  for(const q of questions){
+    const {data:answers,error:aError}=await db.from("dreq_answers")
+      .select("*")
+      .eq("question_id",q.id);
+
+    if(aError){
+      $("lessonQuestions").textContent=
+        "Impossible de charger les réponses. Vérification des autorisations nécessaire.";
+      console.error(aError);
+      return;
+    }
+
+    const box=document.createElement("div");
+    box.className="question";
+
+    const title=document.createElement("h3");
+    title.textContent=q.question_text;
+    box.appendChild(title);
+
+    const selected=new Set();
+    const inputs=[];
+
+    (answers||[]).forEach((a,i)=>{
+      const label=document.createElement("label");
+      label.className="answer";
+
+      const input=document.createElement("input");
+      input.type=q.question_type==="QCU"?"radio":"checkbox";
+      input.name="question-"+q.id;
+      input.value=i;
+
+      input.onchange=()=>{
+        if(input.type==="radio"){
+          selected.clear();
+          selected.add(i);
+        }else{
+          if(input.checked)selected.add(i);
+          else selected.delete(i);
+        }
+      };
+
+      inputs.push(input);
+      const text=document.createElement("span");
+      text.textContent=a.answer_text;
+      label.append(input,text);
+      box.appendChild(label);
+    });
+
+    const verify=document.createElement("button");
+    verify.textContent="Vérifier ma réponse";
+
+    const result=document.createElement("div");
+    result.className="hidden";
+
+    verify.onclick=()=>{
+      if(selected.size===0){
+        result.className="result bad";
+        result.textContent="Choisis une réponse.";
+        return;
+      }
+
+      const correct=(answers||[])
+        .map((a,i)=>a.is_correct?i:-1)
+        .filter(i=>i>=0);
+
+      const chosen=[...selected];
+      const isCorrect=chosen.length===correct.length&&
+        chosen.every(i=>correct.includes(i));
+
+      result.className="result "+(isCorrect?"good":"bad");
+      result.textContent=(isCorrect?"Bonne réponse ! ":"Réponse incorrecte. ")+
+        (q.explanation||"");
+    };
+
+    box.append(verify,result);
+    $("lessonQuestions").appendChild(box);
+  }
 }
 
-data.forEach(c=>{
-const row=document.createElement("div");
-row.className="course-row";
-
-const info=document.createElement("div");
-
-const h=document.createElement("h3");
-h.textContent=c.name||"Cours";
-
-const p=document.createElement("p");
-p.textContent=c.description||"Cours et entraînement";
-
-info.append(h,p);
-
-const b=document.createElement("button");
-b.textContent="Ouvrir le cours";
-b.onclick=()=>openCourse(c);
-
-row.append(info,b);
-$("courses").appendChild(row);
-});
-}
-
-async function openCourse(course){
-currentCourse=course;
-
-show("readerPage");
-
-$("readerTitle").textContent=course.name||"Cours";
-$("readerDescription").textContent=course.description||"";
-
-$("readerContent").textContent=
-course.content||"Le contenu détaillé de ce cours n’a pas encore été ajouté.";
-
-$("readerPdf").innerHTML="";
-
-if(course.file_url){
-const a=document.createElement("a");
-a.href=course.file_url;
-a.target="_blank";
-a.rel="noopener";
-a.textContent="Ouvrir / télécharger le PDF";
-a.className="tag";
-$("readerPdf").appendChild(a);
-}
-
-await loadQuestions(course.id);
-}
-
-async function loadQuestions(courseId){
-empty("questions","Chargement des QCM/QCU…");
-
-const {data:qs,error}=await db
-.from("dreq_questions")
-.select("id,question_text,question_type,explanation")
-.eq("course_id",courseId)
-.eq("is_published",true)
-.order("id");
-
-if(error){
-say("Erreur QCM : "+error.message);
-empty("questions","Impossible de charger les questions.");
-return;
-}
-
-if(!qs?.length){
-empty("questions","Aucun QCM/QCU publié pour ce cours.");
-return;
-}
-
-const ids=qs.map(q=>q.id);
-
-const {data:answers,error:aError}=await db
-.from("dreq_answers")
-.select("id,question_id,answer_text,is_correct")
-.in("question_id",ids)
-.order("id");
-
-if(aError){
-say("Les questions sont là, mais les réponses sont bloquées par les règles d’accès Supabase : "+aError.message);
-
-empty(
-"questions",
-"Accès aux réponses non configuré. L’administration doit autoriser la lecture des réponses publiées pour les étudiants."
-);
-return;
-}
-
-$("questions").innerHTML="";
-
-qs.forEach((q,index)=>{
-const opts=(answers||[]).filter(a=>String(a.question_id)===String(q.id));
-
-const card=document.createElement("article");
-card.className="question";
-
-const top=document.createElement("div");
-top.className="qtop";
-
-const tag=document.createElement("span");
-tag.className="tag";
-tag.textContent=q.question_type||"QCM";
-
-const count=document.createElement("span");
-count.className="muted";
-count.textContent="Question "+(index+1);
-
-top.append(tag,count);
-
-const title=document.createElement("h3");
-title.textContent=q.question_text||"";
-
-card.append(top,title);
-
-const group="q_"+q.id;
-
-opts.forEach(a=>{
-const label=document.createElement("label");
-label.className="option";
-
-const input=document.createElement("input");
-input.type=q.question_type==="QCU"?"radio":"checkbox";
-input.name=group;
-input.value=a.id;
-
-const span=document.createElement("span");
-span.textContent=a.answer_text;
-
-label.append(input,span);
-card.appendChild(label);
-});
-
-const validate=document.createElement("button");
-validate.textContent="Valider ma réponse";
-
-const feedback=document.createElement("div");
-feedback.className="feedback hidden";
-
-validate.onclick=()=>{
-const selected=[...card.querySelectorAll("input:checked")]
-.map(x=>x.value);
-
-if(!selected.length){
-feedback.classList.remove("hidden");
-feedback.textContent="Sélectionne au moins une réponse.";
-return;
-}
-
-const correct=opts
-.filter(a=>a.is_correct)
-.map(a=>String(a.id))
-.sort();
-
-const chosen=[...selected].sort();
-
-const ok=correct.length===chosen.length&&
-correct.every((x,i)=>x===chosen[i]);
-
-card.querySelectorAll(".option").forEach(label=>{
-const inp=label.querySelector("input");
-const a=opts.find(x=>String(x.id)===inp.value);
-
-if(a?.is_correct){
-label.classList.add("correct");
-}else if(inp.checked){
-label.classList.add("wrong");
-}
-
-inp.disabled=true;
-});
-
-feedback.classList.remove("hidden");
-
-feedback.textContent=
-(ok?"Bonne réponse ! ":"Réponse incorrecte. ")+
-"Correction : "+
-(opts.filter(a=>a.is_correct).map(a=>a.answer_text).join(" ; ")||"—")+
-(q.explanation?"\n\nExplication : "+q.explanation:"");
-
-validate.disabled=true;
-};
-
-card.append(validate,feedback);
-$("questions").appendChild(card);
-});
+async function showCourses(){
+  hidePages();
+  $("coursesPage").classList.remove("hidden");
 }
 
 (async()=>{
-const {data:{session}}=await db.auth.getSession();
-
-if(session){
-await start();
-}else{
-show("login");
-}
+  const {data:{session}}=await db.auth.getSession();
+  if(session)await start();
+  else{
+    hidePages();
+    $("login").classList.remove("hidden");
+  }
 })();
 </script>
 </body>
