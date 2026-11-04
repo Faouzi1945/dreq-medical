@@ -1,312 +1,430 @@
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DREQ — Réussir ses examens médicaux</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#091827">
+<meta name="description" content="DREQ Medical Learning : QCM, révisions et suivi pour les étudiants en médecine.">
+<title>DREQ — Medical Learning</title>
+
 <style>
-:root{--bg:#f4f7fb;--card:#fff;--text:#172b4d;--muted:#718096;--primary:#123d5a;--teal:#19a99a;--line:#e5ebf1;--soft:#eaf5f5}
-.dark{--bg:#101c2b;--card:#192b3e;--text:#edf5ff;--muted:#a8b8c9;--line:#2b4055;--soft:#203e4c}
+:root {
+  --bg:#071523;
+  --panel:#10243a;
+  --panel2:#132b43;
+  --text:#f4f8fc;
+  --muted:#a9bbcc;
+  --accent:#38d9c0;
+  --accent2:#18b6a7;
+  --border:rgba(170,205,222,.16);
+  --danger:#ff9ca5;
+  --success:#63e3b6;
+}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,Arial,sans-serif;transition:.2s}
-button,input,select,textarea{font:inherit}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  min-height:100vh;
+  background:radial-gradient(ellipse at 80% 0%,#10374a 0,transparent 34%),var(--bg);
+  color:var(--text);
+  font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+a{color:inherit;text-decoration:none}
+button,input{font:inherit}
 button{cursor:pointer}
-.top{height:72px;background:var(--card);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 6%;position:sticky;top:0;z-index:10}
-.logo{font-size:25px;font-weight:900;letter-spacing:1px;color:var(--teal)}
-.logo span{color:var(--primary)}
-.dark .logo span{color:#fff}
-.nav{display:flex;gap:12px;align-items:center}
-.btn{border:0;border-radius:10px;padding:12px 18px;font-weight:700;background:var(--primary);color:white}
-.btn.teal{background:var(--teal)}
-.btn.light{background:var(--soft);color:var(--text)}
-.btn.danger{background:#c43f4e}
-.hero{padding:90px 8%;background:linear-gradient(125deg,#102f49,#126b78);color:white;display:grid;grid-template-columns:1.3fr .7fr;gap:30px;align-items:center}
-.hero h1{font-size:clamp(35px,5vw,58px);line-height:1.1;margin:12px 0}
-.hero p{font-size:18px;line-height:1.8;color:#dcecf2;max-width:650px}
-.hero-art{border:1px solid #ffffff35;border-radius:28px;padding:35px;background:#ffffff12;text-align:center}
-.hero-art .symbol{font-size:90px}
-.tag{color:#76e0d1;font-weight:800;letter-spacing:2px}
-section{padding:55px 8%}
-.section-title{text-align:center;margin-bottom:30px}
-.section-title h2{font-size:32px;margin-bottom:8px}
-.muted{color:var(--muted)}
-.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:23px}
-.card h3{margin-top:0}
-.feature-icon{font-size:30px}
-.price{font-size:32px;font-weight:900;color:var(--teal)}
-footer{padding:35px 8%;background:#102f49;color:#dcecf2;text-align:center}
-main{max-width:1200px;margin:auto;padding:35px 5%}
-.panel{background:var(--card);border:1px solid var(--line);padding:25px;border-radius:18px;margin-bottom:20px}
-.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:15px}
-input,select,textarea{width:100%;padding:12px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--text);margin:6px 0 14px}
-textarea{min-height:85px;resize:vertical}
-label{font-weight:700;font-size:14px}
+button:disabled{opacity:.6;cursor:wait}
+.container{width:min(1160px,92%);margin:auto}
+.topbar{
+  position:sticky;top:0;z-index:20;
+  background:rgba(7,21,35,.9);
+  backdrop-filter:blur(18px);
+  border-bottom:1px solid var(--border)
+}
+.nav{
+  min-height:78px;display:flex;align-items:center;
+  justify-content:space-between;gap:24px
+}
+.brand{display:flex;align-items:center;gap:11px}
+.brand-mark{width:47px;height:47px;flex:none}
+.brand-name{font-size:23px;font-weight:900;letter-spacing:1.3px}
+.brand-name span{color:var(--accent)}
+.brand-sub{
+  display:block;margin-top:5px;font-size:9px;
+  letter-spacing:2.5px;color:var(--muted);font-weight:700
+}
+.nav-links{display:flex;align-items:center;gap:25px;color:var(--muted);font-size:13px}
+.nav-links a:hover{color:var(--accent)}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;
+  gap:9px;padding:12px 18px;border:1px solid transparent;
+  border-radius:12px;font-weight:800;font-size:13px;
+  transition:transform .18s
+}
+.btn:hover{transform:translateY(-1px)}
+.btn-primary{
+  background:linear-gradient(135deg,var(--accent),#65eed3);
+  color:#05201f
+}
+.btn-secondary{border-color:var(--border);background:rgba(255,255,255,.035);color:var(--text)}
+.hero{
+  display:grid;grid-template-columns:1.08fr .92fr;
+  align-items:center;gap:55px;padding:82px 0 72px
+}
+.eyebrow{
+  display:inline-flex;align-items:center;gap:9px;
+  color:var(--accent);font-size:11px;font-weight:850;
+  letter-spacing:2px;text-transform:uppercase
+}
+.eyebrow:before{content:"";width:23px;height:2px;background:var(--accent)}
+h1{
+  font-size:clamp(39px,5.4vw,67px);line-height:1.04;
+  letter-spacing:-2.6px;margin:20px 0
+}
+h1 em{font-style:normal;color:var(--accent)}
+.lead{max-width:590px;color:var(--muted);font-size:16px;line-height:1.85}
+.hero-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:29px}
+.hero-note{display:flex;align-items:center;gap:10px;margin-top:25px;color:var(--muted);font-size:12px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--accent)}
+.hero-card{
+  padding:29px;border:1px solid var(--border);border-radius:28px;
+  background:linear-gradient(145deg,rgba(24,66,81,.8),rgba(15,35,56,.95));
+  box-shadow:0 22px 70px rgba(0,0,0,.24)
+}
+.mini-top{display:flex;justify-content:space-between;gap:10px;color:var(--muted);font-size:11px}
+.pill{border:1px solid rgba(56,217,192,.28);border-radius:30px;padding:7px;color:var(--accent);font-size:10px}
+.study-title{font-size:20px;font-weight:850;margin:24px 0 7px}
+.study-desc{font-size:12px;color:var(--muted);line-height:1.6}
+.question-box{padding:18px;border:1px solid var(--border);border-radius:16px;background:rgba(3,15,26,.35)}
+.question-label{font-size:10px;color:var(--accent);font-weight:800;letter-spacing:1.5px}
+.question-text{font-size:14px;line-height:1.6;font-weight:700}
+.answer{padding:11px;margin-top:8px;border:1px solid var(--border);border-radius:10px;font-size:11px;color:var(--muted)}
+.answer.correct{border-color:rgba(56,217,192,.5);color:#d8fff5;background:rgba(56,217,192,.08)}
+.progress-wrap{margin-top:20px}
+.progress-meta{display:flex;justify-content:space-between;color:var(--muted);font-size:11px;margin-bottom:9px}
+.progress{height:6px;background:rgba(255,255,255,.09);border-radius:20px;overflow:hidden}
+.progress span{display:block;width:72%;height:100%;background:linear-gradient(90deg,var(--accent2),var(--accent))}
+section.section{padding:67px 0}
+.section-head{text-align:center;max-width:680px;margin:0 auto 34px}
+.section-head .eyebrow:before{display:none}
+h2{font-size:clamp(28px,3.5vw,40px);letter-spacing:-1px;margin:12px 0}
+.section-head p{color:var(--muted);font-size:14px;line-height:1.8}
+.features{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.feature{
+  padding:24px;border:1px solid var(--border);border-radius:19px;
+  background:linear-gradient(145deg,rgba(17,39,61,.88),rgba(11,28,46,.88))
+}
+.feature-icon{
+  width:43px;height:43px;display:grid;place-items:center;
+  border-radius:13px;background:rgba(56,217,192,.1);
+  color:var(--accent);font-size:21px
+}
+.feature h3{margin:17px 0 8px;font-size:16px}
+.feature p{margin:0;color:var(--muted);font-size:13px;line-height:1.75}
+.feature small{display:inline-block;margin-top:13px;color:var(--accent);font-size:10px;font-weight:800}
+.pricing-section{background:linear-gradient(180deg,transparent,rgba(14,38,57,.58),transparent)}
+.pricing{display:grid;grid-template-columns:repeat(3,1fr);gap:17px}
+.price-card{
+  position:relative;padding:27px;border:1px solid var(--border);
+  border-radius:22px;background:rgba(15,35,55,.85);
+  display:flex;flex-direction:column
+}
+.price-card.featured{border-color:rgba(56,217,192,.65);background:linear-gradient(155deg,rgba(20,62,72,.92),rgba(13,32,50,.98))}
+.popular{
+  position:absolute;right:15px;top:15px;border-radius:30px;
+  background:var(--accent);color:#05201f;padding:6px 9px;
+  font-size:9px;font-weight:900
+}
+.price-name{font-size:12px;letter-spacing:1.5px;font-weight:900;color:var(--muted)}
+.price{font-size:39px;font-weight:900;margin:20px 0 5px}
+.price small{font-size:12px;color:var(--muted);font-weight:600}
+.price-desc{min-height:40px;color:var(--muted);font-size:12px;line-height:1.7}
+.price-card ul{list-style:none;padding:0;margin:18px 0 24px;flex:1}
+.price-card li{display:flex;gap:9px;margin:12px 0;color:#d6e3ee;font-size:12px;line-height:1.5}
+.price-card li:before{content:"✓";color:var(--accent);font-weight:900}
+.price-card .btn{width:100%;margin-top:auto}
+.price-footnote{text-align:center;color:var(--muted);font-size:11px;line-height:1.7;margin:20px auto 0;max-width:720px}
+.auth-section{padding-top:72px!important}
+.auth-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;max-width:900px;margin:auto}
+.panel{padding:28px;border:1px solid var(--border);border-radius:22px;background:rgba(15,35,55,.9)}
+.panel h3{margin:0 0 8px;font-size:21px}
+.panel-intro{color:var(--muted);font-size:12px;line-height:1.7}
+.field{margin-top:15px}
+label{display:block;margin-bottom:7px;color:var(--muted);font-size:12px;font-weight:650}
+input{
+  width:100%;padding:13px 14px;border:1px solid var(--border);
+  border-radius:11px;background:#081827;color:var(--text);outline:none
+}
+input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(56,217,192,.09)}
+.panel .btn{width:100%;margin-top:19px}
+.message{
+  display:none;margin:18px auto 0;max-width:900px;padding:13px 15px;
+  border:1px solid var(--border);border-radius:12px;font-size:12px;line-height:1.7
+}
+.message.show{display:block}
+.message.error{color:var(--danger);border-color:rgba(255,156,165,.3)}
+.message.success{color:var(--success);border-color:rgba(99,227,182,.3)}
+.dashboard{margin:52px auto;padding:28px;border:1px solid var(--border);border-radius:22px;background:var(--panel)}
+.dashboard-top{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap}
+.status{display:inline-block;padding:7px 11px;border:1px solid rgba(56,217,192,.3);border-radius:25px;color:var(--accent);font-size:11px}
+.dashboard-card{margin-top:20px;padding:20px;border:1px solid var(--border);border-radius:15px;background:var(--panel2)}
+.muted{color:var(--muted);font-size:13px;line-height:1.7}
+.table-wrap{overflow-x:auto;margin-top:18px}
+table{width:100%;border-collapse:collapse;text-align:left;font-size:12px}
+th,td{padding:13px;border-bottom:1px solid var(--border)}
+th{color:var(--muted)}
+.table-action{border:1px solid var(--border);border-radius:9px;padding:8px 11px;background:rgba(255,255,255,.05);color:var(--text)}
 .hidden{display:none!important}
-.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.item{padding:14px;border:1px solid var(--line);border-radius:12px;margin:9px 0;display:flex;justify-content:space-between;gap:10px;align-items:center}
-.badge{font-size:12px;padding:5px 9px;border-radius:20px;background:var(--soft);color:var(--teal);font-weight:800}
-.notice{padding:13px;background:var(--soft);border-radius:10px;margin:12px 0}
-.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
-.tabs button{background:var(--soft);color:var(--text)}
-.tabs button.active{background:var(--teal);color:white}
-.option{display:flex;gap:10px;align-items:center;padding:10px;border:1px solid var(--line);border-radius:9px;margin:7px 0}
-.option input{width:auto;margin:0}
-.exam-question{padding:20px;border:1px solid var(--line);border-radius:14px;margin:15px 0;background:var(--card)}
-.stat{font-size:28px;font-weight:900;color:var(--teal)}
-#message{position:fixed;bottom:20px;right:20px;background:#123d5a;color:white;padding:14px 20px;border-radius:10px;display:none;z-index:30}
-@media(max-width:700px){.hero{grid-template-columns:1fr;padding:55px 7%}.hero-art{display:none}.top{padding:0 4%}.nav .btn{padding:9px}.hero p{font-size:16px}}
+footer{padding:32px 0 40px;border-top:1px solid var(--border);color:var(--muted);font-size:11px}
+.footer-inner{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap}
+body.light-theme{--bg:#f2f6f8;--panel:#ffffff;--panel2:#edf3f6;--text:#142b3b;--muted:#526777;--border:rgba(25,62,82,.16);background:radial-gradient(ellipse at 80% 0%,#d8f1ed 0,transparent 34%),var(--bg)}
+body.light-theme .topbar{background:rgba(242,246,248,.92)}
+body.light-theme input,body.light-theme textarea,body.light-theme select{background:#fff;color:#142b3b}
+body.light-theme .panel,body.light-theme .dashboard,body.light-theme .dashboard-card,body.light-theme .feature,body.light-theme .price-card{background:#fff;color:#142b3b}
+body.light-theme .hero-card{background:linear-gradient(145deg,#e5f5f2,#fff)}
+body.light-theme .question-box{background:#f5fafb}
+body.light-theme .answer{color:#526777}
+body.light-theme .answer.correct{color:#126c5d}
+.field textarea,.field select{width:100%;padding:13px 14px;border:1px solid var(--border);border-radius:11px;background:#081827;color:var(--text);outline:none;font:inherit}
+.admin-actions{display:flex;gap:7px;flex-wrap:wrap}
+.admin-actions button{margin:2px}
+.content-card{display:flex;gap:15px;align-items:center;padding:15px;border:1px solid var(--border);border-radius:15px;margin-top:12px;background:rgba(255,255,255,.025)}
+.content-card img{width:82px;height:72px;object-fit:cover;border-radius:11px;background:var(--panel2)}
+.exam-nav{display:flex;gap:7px;flex-wrap:wrap;margin:15px 0}
+.exam-nav button{min-width:38px;padding:9px;border:1px solid var(--border);border-radius:9px;background:transparent;color:var(--text)}
+.exam-nav button.answered{border-color:var(--accent);background:rgba(56,217,192,.13)}
+.exam-option{display:flex;gap:10px;align-items:flex-start;padding:12px;border:1px solid var(--border);border-radius:11px;margin:9px 0;cursor:pointer}
+.exam-option input{width:auto;margin-top:3px}
+.stat-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.stat-box{padding:16px;border:1px solid var(--border);border-radius:13px}
+.stat-box strong{display:block;font-size:25px;color:var(--accent)}
+@media(max-width:850px){
+  .nav-links{gap:14px}
+  .hero{gap:28px;padding-top:58px}
+  .features{grid-template-columns:repeat(2,1fr)}
+  .pricing{grid-template-columns:1fr;max-width:520px;margin:auto}
+}
+@media(max-width:650px){
+  .nav{min-height:68px}
+  .nav-links a:not(.btn){display:none}
+  .brand-mark{width:41px;height:41px}
+  .brand-name{font-size:20px}
+  .nav-links .btn{padding:10px 12px;font-size:11px}
+  .hero{grid-template-columns:1fr;padding:49px 0 35px;gap:28px}
+  h1{letter-spacing:-1.6px}
+  .hero-card{padding:20px}
+  .features,.auth-grid{grid-template-columns:1fr}
+  section.section{padding:48px 0}
+  .panel,.dashboard{padding:21px}
+  .footer-inner{flex-direction:column}
+}
 </style>
 </head>
 <body>
-<header class="top">
- <div class="logo">DR<span>EQ</span></div>
- <div class="nav">
-  <button class="btn light" onclick="toggleTheme()">◐</button>
-  <button class="btn light" id="loginNav" onclick="showAuth()">Connexion</button>
-  <button class="btn teal hidden" id="logoutNav" onclick="logout()">Déconnexion</button>
- </div>
+<header class="topbar">
+  <div class="container nav">
+    <a class="brand" href="#accueil" aria-label="DREQ, accueil">
+      <svg class="brand-mark" viewBox="0 0 64 64" role="img" aria-label="Logo DREQ">
+        <defs>
+          <linearGradient id="brandGradient" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#54efd0"/>
+            <stop offset="1" stop-color="#12a99f"/>
+          </linearGradient>
+        </defs>
+        <path d="M11 7h21a23 23 0 0 1 0 46H11V7Z" fill="url(#brandGradient)"/>
+        <path d="M21 17h11a13 13 0 0 1 0 26H21V17Z" fill="#0b1d30"/>
+        <path d="M14 26c-7 0-8 7-4 12l8 9c4 4 9 2 11-2l4-8c2-4 7-5 10-2 3 3 2 8-2 10l-7 4"
+          fill="none" stroke="#38d9c0" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="35" cy="50" r="4" fill="#38d9c0"/>
+      </svg>
+      <span>
+        <span class="brand-name">DRE<span>Q</span></span>
+        <span class="brand-sub">MEDICAL LEARNING</span>
+      </span>
+    </a>
+    <nav class="nav-links" aria-label="Navigation principale">
+      <button class="btn btn-secondary" id="themeToggle" type="button" aria-label="Changer le thème">☀ / ☾</button>
+      <a href="#fonctionnalites">Fonctionnalités</a>
+      <a href="#offres">Offres</a>
+      <a class="btn btn-primary" href="#compte">Commencer ↗</a>
+    </nav>
+  </div>
 </header>
 
-<div id="landing">
- <div class="hero">
-  <div>
-   <div class="tag">DREQ MEDICAL LEARNING</div>
-   <h1>Prépare tes examens.<br>Progresse avec méthode.</h1>
-   <p>Une plateforme de révision médicale conçue pour t'aider à maîtriser tes QCM, identifier tes points faibles et suivre tes progrès.</p>
-   <button class="btn teal" onclick="showAuth()">Commencer maintenant →</button>
-  </div>
-  <div class="hero-art">
-   <div class="symbol">⚕️</div>
-   <h2>Apprendre · S'entraîner · Réussir</h2>
-   <p>Ta préparation médicale, organisée au même endroit.</p>
-  </div>
- </div>
- <section>
-  <div class="section-title"><h2>Tout pour mieux réviser</h2><p class="muted">Des outils simples pour préparer tes examens.</p></div>
-  <div class="cards">
-   <div class="card"><div class="feature-icon">🧠</div><h3>QCM & QCU</h3><p class="muted">Entraîne-toi avec des questions et leurs corrections détaillées.</p></div>
-   <div class="card"><div class="feature-icon">📊</div><h3>Suivi des progrès</h3><p class="muted">Visualise tes résultats et repère les notions à retravailler.</p></div>
-   <div class="card"><div class="feature-icon">⏱️</div><h3>Examens chronométrés</h3><p class="muted">Entraîne-toi dans des conditions proches de l'examen.</p></div>
-   <div class="card"><div class="feature-icon">⭐</div><h3>Questions favorites</h3><p class="muted">Retrouve facilement les questions importantes.</p></div>
-  </div>
- </section>
- <section>
-  <div class="section-title"><h2>Des formules accessibles</h2><p class="muted">L'accès aux semestres est activé manuellement après vérification.</p></div>
-  <div class="cards">
-   <div class="card"><h3>Offre découverte</h3><p>Accès gratuit limité</p><div class="price">Gratuit</div></div>
-   <div class="card"><h3>Un semestre</h3><p>Accès à un semestre</p><div class="price">130 DH</div></div>
-   <div class="card"><h3>Année complète</h3><p>Accès aux deux semestres</p><div class="price">240 DH</div></div>
-  </div>
- </section>
- <footer><h2>DREQ Medical</h2><p>Une nouvelle manière de préparer tes examens médicaux.</p><p>Contact et assistance : bientôt disponibles.</p></footer>
-</div>
+<main id="accueil">
+  <section class="container hero">
+    <div>
+      <div class="eyebrow">La révision médicale, autrement</div>
+      <h1>Prépare tes examens.<br><em>Progresse avec méthode.</em></h1>
+      <p class="lead">
+        DREQ rassemble tes entraînements QCM, tes corrections et tes révisions
+        dans un espace conçu pour accompagner les étudiants en médecine.
+      </p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="#compte">Créer mon compte →</a>
+        <a class="btn btn-secondary" href="#offres">Découvrir les offres</a>
+      </div>
+      <div class="hero-note"><span class="dot"></span> Une plateforme pensée pour réviser plus régulièrement.</div>
+    </div>
 
-<div id="auth" class="hidden">
- <main>
-  <div class="panel" style="max-width:480px;margin:35px auto">
-   <div class="logo">DR<span>EQ</span></div>
-   <h2 id="authTitle">Connexion</h2>
-   <div id="signupName" class="hidden"><label>Nom complet</label><input id="fullName" placeholder="Nom et prénom"></div>
-   <label>Email</label><input id="email" type="email" placeholder="email@exemple.com">
-   <label>Mot de passe</label><input id="password" type="password" placeholder="Mot de passe">
-   <button class="btn teal" style="width:100%" id="authAction" onclick="authenticate()">Se connecter</button>
-   <p class="muted" id="authSwitch">Pas encore de compte ? <a href="#" onclick="switchAuth();return false">Créer un compte</a></p>
-   <button class="btn light" onclick="backHome()">Retour à l'accueil</button>
-  </div>
- </main>
-</div>
+    <div class="hero-card">
+      <div class="mini-top">
+        <span>APERÇU D'ENTRAÎNEMENT</span>
+        <span class="pill">● Mode révision</span>
+      </div>
+      <p class="study-title">Entraîne-toi à ton rythme</p>
+      <p class="study-desc">Des questions organisées pour t'aider à consolider tes connaissances.</p>
+      <div class="question-box">
+        <div class="question-label">Exemple de présentation</div>
+        <p class="question-text">Après une question, retrouve une correction claire pour mieux comprendre la réponse.</p>
+        <div class="answer correct">✓ Réponse et correction expliquées</div>
+        <div class="answer">B — Revoir les autres propositions</div>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-meta"><span>Progression illustrative</span><span>72 %</span></div>
+        <div class="progress"><span></span></div>
+      </div>
+    </div>
+  </section>
 
-<div id="app" class="hidden">
- <main>
-  <div class="row" style="justify-content:space-between">
-   <div><div class="badge" id="roleBadge">ESPACE</div><h1 id="welcome">Bienvenue</h1></div>
-   <button class="btn light" onclick="toggleTheme()">Mode clair / sombre</button>
-  </div>
-  <div id="adminArea" class="hidden">
-   <div class="tabs">
-    <button class="btn active" onclick="adminTab('semesters',this)">Semestres</button>
-    <button class="btn" onclick="adminTab('modules',this)">Modules</button>
-    <button class="btn" onclick="adminTab('courses',this)">Cours</button>
-    <button class="btn" onclick="adminTab('questions',this)">QCM / QCU</button>
-    <button class="btn" onclick="adminTab('access',this)">Accès étudiants</button>
-   </div>
-   <div id="adminContent"></div>
-  </div>
-  <div id="studentArea" class="hidden">
-   <div class="panel"><h2>Mon espace étudiant</h2><p class="muted">Choisis un semestre auquel ton accès est activé.</p></div>
-   <div id="studentContent"></div>
-  </div>
- </main>
-</div>
-<div id="message"></div>
+  <section class="section container" id="fonctionnalites">
+    <div class="section-head">
+      <div class="eyebrow">Un espace pour apprendre</div>
+      <h2>Tout pour mieux organiser tes révisions</h2>
+      <p>Un environnement clair pour travailler les cours, comprendre tes erreurs et avancer étape par étape.</p>
+    </div>
+    <div class="features">
+      <article class="feature">
+        <div class="feature-icon">▤</div>
+        <h3>QCM & QCU</h3>
+        <p>Entraîne-toi avec des questions et retrouve les corrections disponibles pour consolider tes connaissances.</p>
+      </article>
+      <article class="feature">
+        <div class="feature-icon">⌕</div>
+        <h3>Révisions structurées</h3>
+        <p>Organise les contenus par semestre, module et cours pour retrouver ce que tu dois travailler.</p>
+      </article>
+      <article class="feature">
+        <div class="feature-icon">↗</div>
+        <h3>Suivi de progression</h3>
+        <p>Retrouve ton statut de compte et avance vers les contenus autorisés pour ton accès.</p>
+      </article>
+      <article class="feature">
+        <div class="feature-icon">✦</div>
+        <h3>Outils d’aide par IA</h3>
+        <p>Des fonctions d’assistance aux révisions sont prévues dans l’évolution de DREQ.</p>
+        <small>Déploiement progressif</small>
+      </article>
+      <article class="feature">
+        <div class="feature-icon">◷</div>
+        <h3>Révision à ton rythme</h3>
+        <p>Travaille quand tu le souhaites et concentre tes efforts sur les notions à revoir.</p>
+      </article>
+      <article class="feature">
+        <div class="feature-icon">⌑</div>
+        <h3>Accès géré simplement</h3>
+        <p>L’administration active les accès après vérification, sans paiement intégré à l’application.</p>
+      </article>
+    </div>
+  </section>
 
-<script>
-const SUPABASE_URL="https://ttrunryfmwtantycmkor.supabase.co";
-const SUPABASE_KEY="sb_publishable_pv7eoks18qa19-DBSVxBKg_jE8m_OVI";
-const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-let currentUser=null,profile=null,signupMode=false,adminSection="semesters";
-let examQuestions=[],examAnswers={},examStarted=0,examCourse=null;
+  <section class="section pricing-section" id="offres">
+    <div class="container">
+      <div class="section-head">
+        <div class="eyebrow">Des tarifs simples</div>
+        <h2>Choisis l’offre qui te convient</h2>
+        <p>Choisis la formule qui correspond à ton année d’études.</p>
+      </div>
 
-function msg(t){let e=document.getElementById('message');e.textContent=t;e.style.display='block';setTimeout(()=>e.style.display='none',3500)}
-function toggleTheme(){document.body.classList.toggle('dark');localStorage.setItem('dreq-theme',document.body.classList.contains('dark')?'dark':'light')}
-if(localStorage.getItem('dreq-theme')==='dark')document.body.classList.add('dark');
-function hideAll(){['landing','auth','app'].forEach(x=>document.getElementById(x).classList.add('hidden'))}
-function backHome(){hideAll();document.getElementById('landing').classList.remove('hidden')}
-function showAuth(){hideAll();document.getElementById('auth').classList.remove('hidden')}
-function switchAuth(){signupMode=!signupMode;document.getElementById('authTitle').textContent=signupMode?'Créer un compte':'Connexion';document.getElementById('authAction').textContent=signupMode?'Créer mon compte':'Se connecter';document.getElementById('signupName').classList.toggle('hidden',!signupMode);document.getElementById('authSwitch').innerHTML=signupMode?'Déjà inscrit ? <a href="#" onclick="switchAuth();return false">Connexion</a>':'Pas encore de compte ? <a href="#" onclick="switchAuth();return false">Créer un compte</a>'}
-async function authenticate(){
- let email=document.getElementById('email').value.trim(),password=document.getElementById('password').value;
- if(!email||!password)return msg('Remplis les champs.');
- let r;
- if(signupMode){let name=document.getElementById('fullName').value.trim();if(!name)return msg('Entre ton nom complet.');r=await db.auth.signUp({email,password,options:{data:{full_name:name}}})}
- else r=await db.auth.signInWithPassword({email,password});
- if(r.error)return msg(r.error.message);
- if(signupMode){msg('Compte créé. Vérifie ton email si demandé, puis connecte-toi.');switchAuth();return}
- await loadApp();
-}
-async function logout(){await db.auth.signOut();currentUser=null;profile=null;document.getElementById('logoutNav').classList.add('hidden');document.getElementById('loginNav').classList.remove('hidden');backHome()}
-async function loadApp(){
- const {data:{user}}=await db.auth.getUser();if(!user)return;
- currentUser=user;
- let p=await db.from('profiles').select('*').eq('id',user.id).maybeSingle();
- if(p.error)return msg('Erreur profil : '+p.error.message);
- profile=p.data;
- if(!profile){msg('Profil introuvable. Contacte l’administrateur.');return}
- hideAll();document.getElementById('app').classList.remove('hidden');
- document.getElementById('loginNav').classList.add('hidden');document.getElementById('logoutNav').classList.remove('hidden');
- document.getElementById('welcome').textContent='Bienvenue '+(profile.full_name||user.email);
- let admin=profile.role==='admin';
- document.getElementById('roleBadge').textContent=admin?'ADMINISTRATION':'ESPACE ÉTUDIANT';
- document.getElementById('adminArea').classList.toggle('hidden',!admin);
- document.getElementById('studentArea').classList.toggle('hidden',admin);
- if(admin)renderAdmin();else renderStudent();
-}
-async function rows(table,columns='*'){let r=await db.from(table).select(columns);if(r.error){msg(table+' : '+r.error.message);return []}return r.data||[]}
-function field(label,id,placeholder=''){return `<label>${label}</label><input id="${id}" placeholder="${placeholder}">`}
-function adminTab(tab,el){adminSection=tab;document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('active'));el.classList.add('active');renderAdmin()}
-async function renderAdmin(){
- const box=document.getElementById('adminContent');
- if(adminSection==='semesters'){
-  let data=await rows('semesters');
-  box.innerHTML=`<div class="panel"><h2>Gestion des semestres</h2>${field('Nom du semestre','sName','Semestre 1')}${field('Code','sCode','S1')}<label><input type="checkbox" id="sPub" checked style="width:auto"> Publié</label><button class="btn teal" onclick="addSemester()">Ajouter le semestre</button><div id="sList"></div></div>`;
-  document.getElementById('sList').innerHTML=data.map(x=>`<div class="item"><b>${esc(x.name)} <span class="badge">${esc(x.code||'')}</span></b><button class="btn danger" onclick="deleteRow('semesters',${x.id})">Supprimer</button></div>`).join('');
- }
- if(adminSection==='modules'){
-  let [sem,data]=await Promise.all([rows('semesters'),rows('modules')]);
-  box.innerHTML=`<div class="panel"><h2>Gestion des modules</h2><label>Semestre</label><select id="mSem">${sem.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join('')}</select>${field('Nom du module','mName','Anatomie')}${field('Description','mDesc','Description courte')}${field('Image URL (facultatif)','mImage','https://...')}<button class="btn teal" onclick="addModule()">Ajouter le module</button><div id="mList"></div></div>`;
-  document.getElementById('mList').innerHTML=data.map(x=>`<div class="item"><b>${esc(x.name)}</b><button class="btn danger" onclick="deleteRow('modules',${x.id})">Supprimer</button></div>`).join('');
- }
- if(adminSection==='courses'){
-  let [mods,data]=await Promise.all([rows('modules'),rows('courses')]);
-  box.innerHTML=`<div class="panel"><h2>Gestion des cours</h2><label>Module</label><select id="cMod">${mods.map(m=>`<option value="${m.id}">${esc(m.name)}</option>`).join('')}</select>${field('Titre du cours','cName','Ex : Généralités sur la cellule')}${field('Image URL (facultatif)','cImage','https://...')}<button class="btn teal" onclick="addCourse()">Ajouter le cours</button><div id="cList"></div></div>`;
-  document.getElementById('cList').innerHTML=data.map(x=>`<div class="item"><b>${esc(x.name)}</b><button class="btn danger" onclick="deleteRow('courses',${x.id})">Supprimer</button></div>`).join('');
- }
- if(adminSection==='questions'){
-  let courses=await rows('courses');
-  box.innerHTML=`<div class="panel"><h2>Ajouter une question</h2><label>Cours</label><select id="qCourse">${courses.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('')}</select><label>Type</label><select id="qType"><option>QCU</option><option>QCM</option></select><label>Énoncé</label><textarea id="qText" placeholder="Écrire la question..."></textarea><h3>Propositions</h3>${['A','B','C','D','E'].map(k=>`<label>${k}</label><div class="row"><input id="opt${k}" placeholder="Proposition ${k}"><label><input type="checkbox" id="correct${k}" style="width:auto"> Correcte</label></div>`).join('')}<label>Explication / correction</label><textarea id="qExplain" placeholder="Explication de la bonne réponse..."></textarea><button class="btn teal" onclick="addQuestion()">Enregistrer la question</button><hr><h3>Importation groupée</h3><p class="muted">Format : QUESTION: ... puis A: ... jusqu'à E: ... puis REPONSE: A,C puis EXPLICATION: ... Sépare les questions par une ligne ---.</p><textarea id="bulkText" style="min-height:170px" placeholder="QUESTION: ...&#10;A: ...&#10;B: ...&#10;C: ...&#10;D: ...&#10;E: ...&#10;REPONSE: B&#10;EXPLICATION: ...&#10;---"></textarea><button class="btn light" onclick="previewBulk()">Générer le format</button><div id="bulkPreview"></div></div>`;
- }
- if(adminSection==='access'){
-  let [sem,users]=await Promise.all([rows('semesters'),rows('profiles')]);
-  box.innerHTML=`<div class="panel"><h2>Activation des accès étudiants</h2><label>Étudiant</label><select id="aStudent">${users.filter(u=>u.role!=='admin').map(u=>`<option value="${u.id}">${esc(u.full_name||u.email||u.id)}</option>`).join('')}</select><label>Semestre</label><select id="aSem">${sem.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join('')}</select><button class="btn teal" onclick="grantAccess(true)">Activer l'accès</button> <button class="btn danger" onclick="grantAccess(false)">Désactiver l'accès</button></div>`;
- }
-}
-function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-async function addSemester(){let name=sName.value.trim(),code=sCode.value.trim();if(!name)return msg('Nom obligatoire');let r=await db.from('semesters').insert({name,code,is_published:sPub.checked});if(r.error)return msg(r.error.message);msg('Semestre ajouté');renderAdmin()}
-async function addModule(){let name=mName.value.trim();if(!name)return msg('Nom obligatoire');let r=await db.from('modules').insert({name,semester_id:mSem.value,description:mDesc.value,image_url:mImage.value,is_published:true});if(r.error)return msg(r.error.message);msg('Module ajouté');renderAdmin()}
-async function addCourse(){let name=cName.value.trim();if(!name)return msg('Titre obligatoire');let r=await db.from('courses').insert({name,module_id:cMod.value,is_published:true});if(r.error)return msg(r.error.message);msg('Cours ajouté');renderAdmin()}
-async function deleteRow(table,id){if(!confirm('Confirmer la suppression ?'))return;let r=await db.from(table).delete().eq('id',id);if(r.error)return msg(r.error.message);msg('Élément supprimé');renderAdmin()}
-async function addQuestion(){
- let course_id=qCourse.value,type=qType.value,question_text=qText.value.trim(),explanation=qExplain.value.trim();
- let keys=['A','B','C','D','E'].filter(k=>document.getElementById('correct'+k).checked);
- let options=['A','B','C','D','E'].map(k=>({k,text:document.getElementById('opt'+k).value.trim()}));
- if(!question_text||options.some(o=>!o.text)||!keys.length)return msg('Complète la question, les 5 propositions et la correction.');
- if(type==='QCU'&&keys.length!==1)return msg('Un QCU doit avoir une seule bonne réponse.');
- let q=await db.from('dreq_questions').insert({course_id,type,question_text,explanation,is_published:true}).select('id').single();
- if(q.error)return msg(q.error.message);
- let a=await db.from('dreq_answers').insert(options.map(o=>({question_id:q.data.id,answer_text:o.k+': '+o.text,is_correct:keys.includes(o.k)})));
- if(a.error)return msg('Question créée mais erreur réponses : '+a.error.message);
- msg('Question enregistrée !');renderAdmin();
-}
-function previewBulk(){
- let raw=bulkText.value.split(/\n\s*---\s*\n/),out=[];
- for(let part of raw){let lines=part.split('\n'),obj={};lines.forEach(line=>{let i=line.indexOf(':');if(i>0)obj[line.slice(0,i).trim().toUpperCase()]=line.slice(i+1).trim()});if(obj.QUESTION)out.push(obj)}
- document.getElementById('bulkPreview').innerHTML=`<div class="notice">${out.length} question(s) détectée(s). L'importation groupée sera activée dans la prochaine mise à jour. Le format a été reconnu.</div>`;
-}
-async function grantAccess(enabled){
- let student_id=aStudent.value,semester_id=aSem.value;
- let r=await db.from('student_semester_access').upsert({student_id,semester_id,enabled},{onConflict:'student_id,semester_id'});
- if(r.error)return msg(r.error.message);msg(enabled?'Accès activé':'Accès désactivé');
-}
-async function renderStudent(){
- let box=document.getElementById('studentContent');
- let access=await db.from('student_semester_access').select('semester_id,enabled').eq('student_id',currentUser.id).eq('enabled',true);
- if(access.error){box.innerHTML='<div class="notice">Les accès ne sont pas encore configurés : '+esc(access.error.message)+'</div>';return}
- let ids=(access.data||[]).map(x=>x.semester_id);
- if(!ids.length){box.innerHTML='<div class="panel"><h3>Aucun semestre activé</h3><p class="muted">Ton accès sera disponible après validation par l’administration.</p></div>';return}
- let sem=await db.from('semesters').select('*').in('id',ids);
- box.innerHTML=(sem.data||[]).map(s=>`<div class="panel"><h2>${esc(s.name)}</h2><button class="btn teal" onclick="openSemester(${s.id})">Ouvrir le semestre</button></div>`).join('');
-}
-async function openSemester(id){
- let r=await db.from('modules').select('*').eq('semester_id',id).eq('is_published',true);
- let box=document.getElementById('studentContent');
- if(r.error)return msg(r.error.message);
- box.innerHTML=`<button class="btn light" onclick="renderStudent()">← Semestres</button>`+(r.data||[]).map(m=>`<div class="panel"><h2>${esc(m.name)}</h2><p class="muted">${esc(m.description||'')}</p><button class="btn teal" onclick="openModule(${m.id})">Voir les cours</button></div>`).join('');
-}
-async function openModule(id){
- let r=await db.from('courses').select('*').eq('module_id',id).eq('is_published',true);
- let box=document.getElementById('studentContent');
- if(r.error)return msg(r.error.message);
- box.innerHTML=`<button class="btn light" onclick="renderStudent()">← Retour</button>`+(r.data||[]).map(c=>`<div class="panel"><h3>${esc(c.name)}</h3><button class="btn teal" onclick="startExam(${c.id},'${esc(c.name).replace(/'/g,"\\'")}')">Commencer les QCM</button></div>`).join('');
-}
-async function startExam(courseId,name){
- let q=await db.from('dreq_questions').select('id,question_text,type,explanation').eq('course_id',courseId).eq('is_published',true);
- if(q.error)return msg(q.error.message);
- if(!q.data.length)return msg('Aucune question publiée dans ce cours.');
- let ids=q.data.map(x=>x.id);
- let a=await db.from('dreq_answers').select('*').in('question_id',ids);
- if(a.error)return msg(a.error.message);
- examQuestions=q.data.map(x=>({...x,options:(a.data||[]).filter(y=>y.question_id===x.id)}));
- examAnswers={};examCourse=courseId;examStarted=Date.now();
- showExam(name);
-}
-function showExam(name){
- let box=document.getElementById('studentContent');
- box.innerHTML=`<div class="panel"><div class="row" style="justify-content:space-between"><h2>${esc(name)}</h2><b id="timer">Chronomètre activé</b></div><div id="examBody"></div><button class="btn teal" onclick="finishExam()">Terminer l'examen</button></div>`;
- document.getElementById('examBody').innerHTML=examQuestions.map((q,i)=>`<div class="exam-question"><b>Question ${i+1} — ${q.type}</b><p>${esc(q.question_text)}</p>${q.options.map((o,j)=>`<label class="option"><input type="${q.type==='QCU'?'radio':'checkbox'}" name="q${q.id}" value="${j}" onchange="selectAnswer(${q.id},${j},'${q.type}')">${esc(o.answer_text)}</label>`).join('')}</div>`).join('');
-}
-function selectAnswer(qid,index,type){if(type==='QCU')examAnswers[qid]=[index];else{let a=examAnswers[qid]||[];examAnswers[qid]=a.includes(index)?a.filter(x=>x!==index):[...a,index]}}
-async function finishExam(){
- let score=0,review=[];
- examQuestions.forEach((q,i)=>{
-  let chosen=examAnswers[q.id]||[];
-  let correct=q.options.map((o,j)=>o.is_correct?j:null).filter(x=>x!==null);
-  let ok=chosen.length===correct.length&&chosen.every(x=>correct.includes(x));
-  if(ok)score++;
-  review.push({q,i,chosen,correct,ok});
- });
- let seconds=Math.round((Date.now()-examStarted)/1000);
- let attempt=await db.from('dreq_attempts').insert({student_id:currentUser.id,course_id:examCourse,score,total:examQuestions.length,duration_seconds:seconds}).select('id').single();
- if(attempt.error){msg('Résultat calculé, historique non sauvegardé : '+attempt.error.message)}
- else{
-  let records=review.map(x=>({attempt_id:attempt.data.id,student_id:currentUser.id,question_id:x.q.id,question_number:x.i+1,selected_options:x.chosen.map(j=>x.q.options[j]?.answer_text||''),is_correct:x.ok}));
-  let saved=await db.from('dreq_attempt_answers').insert(records);
-  if(saved.error)msg('Historique des réponses non sauvegardé : '+saved.error.message);
- }
- showResults(score,seconds,review);
-}
-function showResults(score,seconds,review){
- let box=document.getElementById('studentContent'),total=review.length,pct=Math.round(score/total*100);
- box.innerHTML=`<div class="panel"><h2>Résultat de l'examen</h2><div class="stat">${score}/${total}</div><div style="height:12px;background:var(--line);border-radius:20px;overflow:hidden"><div style="height:100%;width:${pct}%;background:var(--teal)"></div></div><p>${pct}% — Durée : ${Math.floor(seconds/60)} min ${seconds%60} sec</p><h3>Révision des questions</h3><div class="row">${review.map(x=>`<button class="btn ${x.ok?'teal':'danger'}" onclick="showReview(${x.i})">${x.i+1}</button>`).join('')}</div><div id="reviewBox" class="notice">Clique sur un numéro pour revoir ta réponse et la correction.</div><button class="btn light" onclick="renderStudent()">Retour à l'espace étudiant</button></div>`;
- window.lastReview=review;
-}
-function showReview(i){
- let x=window.lastReview[i],q=x.q;
- document.getElementById('reviewBox').innerHTML=`<h3>Question ${i+1}</h3><p>${esc(q.question_text)}</p><p><b>Ta réponse :</b> ${x.chosen.map(j=>esc(q.options[j]?.answer_text||'')).join(' ; ')||'Aucune réponse'}</p><p><b>Bonne réponse :</b> ${x.correct.map(j=>esc(q.options[j]?.answer_text||'')).join(' ; ')}</p><p><b>Correction :</b> ${esc(q.explanation||'Aucune explication disponible')}</p><span class="badge">${x.ok?'Correcte':'Incorrecte'}</span>`;
-}
-db.auth.getSession().then(({data})=>{if(data.session)loadApp()});
-</script>
-</body>
-</html>
+      <div class="pricing" style="grid-template-columns:repeat(2,minmax(0,1fr));max-width:760px;margin:auto">
+        <article class="price-card">
+          <div class="price-name">PREMIUM SEMESTRE</div>
+          <div class="price">130 DH <small>/ semestre</small></div>
+          <div class="price-desc">Un accès complet au semestre choisi.</div>
+          <ul>
+            <li>Accès aux modules et cours activés</li>
+            <li>Entraînements QCM et QCU</li>
+            <li>Corrections et explications</li>
+          </ul>
+          <a class="btn btn-secondary" href="#compte" data-focus="signup">Demander l’accès</a>
+        </article>
+        <article class="price-card featured">
+          <span class="popular">OFFRE ANNUELLE</span>
+          <div class="price-name">PREMIUM ANNÉE</div>
+          <div class="price">240 DH <small>/ année</small></div>
+          <div class="price-desc">Un accès annuel selon les semestres activés.</div>
+          <ul>
+            <li>Accès aux deux semestres de l’année</li>
+            <li>Entraînements QCM et QCU</li>
+            <li>Corrections et suivi des résultats</li>
+          </ul>
+          <a class="btn btn-primary" href="#compte" data-focus="signup">Demander l’accès annuel</a>
+        </article>
+      </div>
+
+      <p class="price-footnote">
+        Le règlement se fait en dehors de DREQ. L’accès est activé manuellement après vérification par l’administration.
+      </p>
+    </div>
+  </section>
+
+  <section class="section container" id="contact">
+    <div class="section-head">
+      <div class="eyebrow">Besoin d’informations ?</div>
+      <h2>Pour plus d’informations</h2>
+      <p>Contacte l’administration DREQ sur WhatsApp. Nous faisons notre possible pour répondre dans un délai de 24 à 48 heures.</p>
+      <a class="btn btn-primary" href="https://wa.me/212774756134" target="_blank" rel="noopener noreferrer">Contacter l’administration sur WhatsApp ↗</a>
+    </div>
+  </section>
+
+  <section class="section auth-section container" id="compte">
+    <div class="section-head">
+      <div class="eyebrow">Rejoins DREQ</div>
+      <h2>Prêt·e à commencer ?</h2>
+      <p>Connecte-toi à ton compte ou crée ton espace étudiant en quelques étapes.</p>
+    </div>
+
+    <div class="auth-grid">
+      <section class="panel">
+        <h3>Connexion</h3>
+        <p class="panel-intro">Accède à ton espace étudiant ou administrateur.</p>
+        <form id="loginForm">
+          <div class="field">
+            <label for="loginEmail">Adresse e-mail</label>
+            <input id="loginEmail" type="email" autocomplete="username" placeholder="toi@exemple.com" required>
+          </div>
+          <div class="field">
+            <label for="loginPassword">Mot de passe</label>
+            <input id="loginPassword" type="password" autocomplete="current-password" placeholder="Ton mot de passe" required>
+          </div>
+          <p style="margin:12px 0 0;text-align:right;font-size:12px;color:var(--muted)">
+            Mot de passe oublié ?
+            <a href="#" id="passwordHelpLink" style="color:var(--accent);font-weight:800">Contacter l’administration</a>
+          </p>
+          <button id="loginButton" class="btn btn-primary" type="submit">Se connecter</button>
+        </form>
+      </section>
+
+      <section class="panel">
+        <h3>Créer un compte</h3>
+        <p class="panel-intro">Inscris-toi pour demander un accès étudiant.</p>
+        <form id="signupForm">
+          <div class="field">
+            <label for="signupName">Nom complet</label>
+            <input id="signupName" type="text" autocomplete="name" placeholder="Nom et prénom" required>
+          </div>
+          <div class="field">
+            <label for="signupEmail">Adresse e-mail</label>
+            <input id="signupEmail" type="email" autocomplete="email" placeholder="toi@exemple.com" required>
+          </div>
+          <div class="field">
+            <label for="signupPassword">Mot de passe</label>
+            <input id="signupPassword" type="password" autocomplete="new-password" minlength="8" placeholder="8 caractères minimum" required>
+          </div>
+          <button id="signupButton" class="btn btn-primary" type="submit">Créer mon compte</button>
+        </form>
+      </section>
+    </div>
+
+    <div id="authMessage" class="message" role="status" aria-live="polite"></div>
+  </section>
+</main>
