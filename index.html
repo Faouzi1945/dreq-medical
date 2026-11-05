@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -217,8 +218,10 @@ body.light-theme .answer.correct{color:#126c5d}
   .panel,.dashboard{padding:21px}
   .footer-inner{flex-direction:column}
 }
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 </style>
 </head>
+
 <body>
 <header class="topbar">
   <div class="container nav">
@@ -406,11 +409,11 @@ body.light-theme .answer.correct{color:#126c5d}
 
       <section class="panel">
         <h3>Créer un compte</h3>
-        <p class="panel-intro">Inscris-toi pour demander un accès étudiant.</p>
+        <p class="panel-intro">Crée ton compte. Les accès aux semestres seront gérés par l’administration.</p>
         <form id="signupForm">
           <div class="field">
             <label for="signupName">Nom complet</label>
-            <input id="signupName" type="text" autocomplete="name" placeholder="Nom et prénom" required>
+            <input id="signupName" type="text" autocomplete="name" placeholder="Nom et prénom" maxlength="100" required>
           </div>
           <div class="field">
             <label for="signupEmail">Adresse e-mail</label>
@@ -424,7 +427,544 @@ body.light-theme .answer.correct{color:#126c5d}
         </form>
       </section>
     </div>
-
     <div id="authMessage" class="message" role="status" aria-live="polite"></div>
   </section>
+
+  <section id="dashboard" class="container dashboard hidden">
+    <div class="dashboard-top">
+      <div>
+        <div class="eyebrow">Espace personnel</div>
+        <h2 id="dashboardTitle">Bienvenue sur DREQ</h2>
+        <p id="accountEmail" class="muted"></p>
+      </div>
+      <span id="accountStatus" class="status">Vérification du compte…</span>
+    </div>
+
+    <p id="dashboardDescription" class="muted">Chargement des informations de ton compte…</p>
+
+    <div id="adminNotice" class="dashboard-card hidden">
+      <h3>Administration DREQ</h3>
+      <p class="muted">Ajoute et organise les semestres, modules, cours et questions. Les étudiants ne disposent d’aucun outil de modification.</p>
+      <div class="admin-tabs" style="display:flex;gap:8px;flex-wrap:wrap;margin:18px 0">
+        <button class="btn btn-secondary" type="button" data-admin-tab="semesters">Semestres</button>
+        <button class="btn btn-secondary" type="button" data-admin-tab="modules">Modules</button>
+        <button class="btn btn-secondary" type="button" data-admin-tab="courses">Cours</button>
+        <button class="btn btn-secondary" type="button" data-admin-tab="questions">QCM / QCU</button>
+        <button class="btn btn-secondary" type="button" data-admin-tab="access">Accès étudiants</button>
+      </div>
+      <div id="adminWorkspace"></div>
+      <div id="adminMessage" class="message" role="status" aria-live="polite"></div>
+    </div>
+
+    <div id="studentNotice" class="dashboard-card hidden">
+      <h3>Mes révisions</h3>
+      <p id="studentAccessText" class="muted">Les accès aux semestres sont gérés par l’administration.</p>
+      <button class="btn btn-secondary" id="historyButton" type="button">Historique et statistiques</button><div id="studentWorkspace"></div>
+    </div>
+
+    <div id="dashboardMessage" class="message show" role="status" aria-live="polite"></div>
+    <button id="logoutButton" class="btn btn-secondary" type="button" style="margin-top:20px">Se déconnecter</button>
+  </section>
 </main>
+
+<footer>
+  <div class="container footer-inner">
+    <span>© <span id="year"></span> DREQ · Medical Learning</span>
+    <span>Apprendre aujourd’hui, soigner demain.</span>
+    <a href="https://wa.me/212774756134" target="_blank" rel="noopener noreferrer">Pour plus d’informations · WhatsApp</a>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+"use strict";
+
+/* Configuration du projet Supabase existant. */
+const SUPABASE_URL = "https://ttrunryfmwtantycmkor.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_pv7eoks18qa19-DBSVxBKg_jE8m_OVI";
+
+/*
+ * Numéro WhatsApp de l’administration, format international sans + ni espaces.
+ * Exemple Maroc : 2126XXXXXXXX.
+ * Remplace uniquement 212XXXXXXXXX par ton vrai numéro.
+ */
+const ADMIN_WHATSAPP_NUMBER = "212774756134";
+
+const $ = (id) => document.getElementById(id);
+let supabaseClient = null;
+
+function showMessage(element, message, type = "") {
+  if (!element) return;
+  element.textContent = message;
+  element.className = "message show" + (type ? " " + type : "");
+}
+
+function friendlyError(error) {
+  const message = error?.message || "Une erreur inconnue est survenue.";
+
+  if (/invalid login credentials/i.test(message))
+    return "Adresse e-mail ou mot de passe incorrect.";
+
+  if (/email not confirmed/i.test(message))
+    return "Adresse e-mail non confirmée. Vérifie les paramètres de confirmation dans Supabase.";
+
+  if (/user already registered/i.test(message))
+    return "Cette adresse possède déjà un compte. Essaie de te connecter.";
+
+  if (/password should be at least/i.test(message))
+    return "Choisis un mot de passe plus long.";
+
+  if (/failed to fetch|networkerror|load failed/i.test(message))
+    return "Connexion au serveur impossible. Vérifie Internet et les paramètres Supabase.";
+
+  if (/row-level security|permission denied|not allowed/i.test(message))
+    return "Accès refusé par les règles de sécurité Supabase. Vérifie les politiques RLS.";
+
+  return message;
+}
+
+function setBusy(button, busy, busyLabel) {
+  if (!button) return;
+
+  if (busy) {
+    if (!button.dataset.originalLabel)
+      button.dataset.originalLabel = button.textContent;
+
+    button.disabled = true;
+    button.textContent = busyLabel;
+  } else {
+    button.disabled = false;
+    button.textContent = button.dataset.originalLabel || button.textContent;
+  }
+}
+
+function showLanding() {
+  $("dashboard").classList.add("hidden");
+
+  document.querySelectorAll("#accueil > section").forEach(section => {
+    if (section.id !== "dashboard")
+      section.classList.remove("hidden");
+  });
+
+  $("compte").scrollIntoView({behavior:"smooth", block:"start"});
+}
+
+async function showDashboard(user) {
+  window.__dreqUserId = user.id;
+  document.querySelectorAll("#accueil > section").forEach(section => {
+    if (section.id !== "dashboard")
+      section.classList.add("hidden");
+  });
+
+  $("dashboard").classList.remove("hidden");
+  $("dashboard").scrollIntoView({behavior:"smooth", block:"start"});
+  $("accountEmail").textContent = user.email || "";
+  $("accountStatus").textContent = "Connecté · vérification du profil…";
+  $("adminNotice").classList.add("hidden");
+  $("studentNotice").classList.add("hidden");
+
+  showMessage($("dashboardMessage"), "Chargement du profil…");
+
+  const {data: profile, error} = await supabaseClient
+    .from("profiles")
+    .select("role, access_enabled")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (error) {
+    $("accountStatus").textContent = "Connexion réussie";
+    $("dashboardTitle").textContent = "Profil indisponible";
+    $("dashboardDescription").textContent =
+      "Le compte est connecté, mais le profil n’a pas pu être lu.";
+
+    showMessage(
+      $("dashboardMessage"),
+      "Erreur de lecture du profil : " + friendlyError(error),
+      "error"
+    );
+    return;
+  }
+
+  if (!profile) {
+    $("accountStatus").textContent = "Profil en attente";
+    $("dashboardTitle").textContent = "Profil non disponible";
+    $("dashboardDescription").textContent =
+      "Aucun profil n’a été trouvé dans la table profiles. Vérifie le déclencheur de création du profil dans Supabase.";
+
+    showMessage(
+      $("dashboardMessage"),
+      "Le profil doit être créé ou réparé dans Supabase.",
+      "error"
+    );
+    return;
+  }
+
+  if (profile.role === "admin") {
+    $("accountStatus").textContent = "Administrateur";
+    $("dashboardTitle").textContent = "Espace administrateur";
+    $("dashboardDescription").textContent =
+      "Connecté en tant qu’administrateur. Tu peux actualiser la liste des comptes étudiants et gérer leur accès global.";
+
+    $("adminNotice").classList.remove("hidden");
+
+    showMessage(
+      $("dashboardMessage"),
+      "Connexion administrateur réussie.",
+      "success"
+    );
+    await renderAdminTab("semesters");
+    return;
+  }
+
+  $("accountStatus").textContent =
+    profile.access_enabled ? "Compte activé" : "Accès en attente";
+
+  $("dashboardTitle").textContent = "Espace étudiant";
+
+  $("dashboardDescription").textContent = profile.access_enabled
+    ? "Ton compte est activé. Les accès aux semestres restent soumis aux autorisations configurées."
+    : "Ton compte est créé. L’administration doit activer ton accès après vérification.";
+
+  $("studentNotice").classList.remove("hidden");
+
+  $("studentAccessText").textContent = profile.access_enabled
+    ? "Ton compte est activé. Le contenu pédagogique sera disponible au fur et à mesure de sa mise en place."
+    : "Ton compte est en attente d’activation par l’administration.";
+
+  showMessage(
+    $("dashboardMessage"),
+    profile.access_enabled ? "Compte activé." : "Compte créé, en attente d’activation.",
+    profile.access_enabled ? "success" : ""
+  );
+  await renderStudentSemesters();
+  const historyButton=$("historyButton");if(historyButton)historyButton.onclick=renderStudentHistory;
+}
+
+async function loadStudents() {
+  const tbody = $("studentsTableBody");
+  const button = $("refreshStudentsButton");
+  const message = $("adminMessage");
+
+  button.disabled = true;
+  tbody.replaceChildren();
+
+  const loadingRow = document.createElement("tr");
+  const loadingCell = document.createElement("td");
+  loadingCell.colSpan = 3;
+  loadingCell.textContent = "Chargement des étudiants…";
+  loadingRow.appendChild(loadingCell);
+  tbody.appendChild(loadingRow);
+
+  try {
+    const {data: students, error} = await supabaseClient
+      .from("profiles")
+      .select("id, full_name, role, created_at, access_enabled")
+      .eq("role", "student")
+      .order("created_at", {ascending:false});
+
+    if (error) throw error;
+
+    tbody.replaceChildren();
+
+    if (!students || students.length === 0) {
+      const row = document.createElement("tr");
+      const cell = document.createElement("td");
+      cell.colSpan = 3;
+      cell.textContent = "Aucun étudiant trouvé.";
+      row.appendChild(cell);
+      tbody.appendChild(row);
+    } else {
+      for (const student of students) {
+        const row = document.createElement("tr");
+        const nameCell = document.createElement("td");
+        const statusCell = document.createElement("td");
+        const actionCell = document.createElement("td");
+        const action = document.createElement("button");
+
+        nameCell.textContent = student.full_name || "Étudiant";
+        statusCell.textContent = student.access_enabled
+          ? "Accès activé"
+          : "Accès désactivé";
+
+        action.type = "button";
+        action.className = "table-action";
+        action.textContent = student.access_enabled
+          ? "Désactiver"
+          : "Activer";
+
+        action.addEventListener("click", async () => {
+          action.disabled = true;
+          showMessage(message, "Mise à jour de l’accès…");
+
+          try {
+            const {data, error} = await supabaseClient.rpc(
+              "admin_set_student_access",
+              {
+                target_student: student.id,
+                new_access: !student.access_enabled
+              }
+            );
+
+            if (error) throw error;
+
+            if (data !== true)
+              throw new Error("L’accès n’a pas été confirmé. Vérifie la fonction RPC.");
+
+            showMessage(message, "Accès mis à jour.", "success");
+            await loadStudents();
+          } catch (err) {
+            showMessage(message, "Erreur : " + friendlyError(err), "error");
+            action.disabled = false;
+          }
+        });
+
+        actionCell.appendChild(action);
+        row.append(nameCell, statusCell, actionCell);
+        tbody.appendChild(row);
+      }
+    }
+
+    showMessage(message, "Liste des comptes actualisée.", "success");
+
+  } catch (error) {
+    tbody.replaceChildren();
+
+    const row = document.createElement("tr");
+    const cell = document.createElement("td");
+    cell.colSpan = 3;
+    cell.textContent =
+      "Impossible de charger les étudiants : " + friendlyError(error);
+
+    row.appendChild(cell);
+    tbody.appendChild(row);
+
+    showMessage(
+      message,
+      "Vérifie les autorisations RLS de la table profiles.",
+      "error"
+    );
+  } finally {
+    button.disabled = false;
+  }
+}
+
+
+/* DREQ — outils de gestion des contenus (tables Supabase existantes). */
+function adminMsg(text, type="") { showMessage($("adminMessage"), text, type); }
+function safeText(value) { return String(value ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+async function tableRows(table, query=(q)=>q) {
+  let q=supabaseClient.from(table).select("*"); q=query(q);
+  const {data,error}=await q; if(error) throw error; return data||[];
+}
+async function updateRow(table,id,values){const {error}=await supabaseClient.from(table).update(values).eq("id",id);if(error)throw error;}
+async function renderAdminTab(tab) {
+  const box=$("adminWorkspace"); box.dataset.tab=tab; box.innerHTML="<p class='muted'>Chargement…</p>";
+  document.querySelectorAll("[data-admin-tab]").forEach(b=>b.classList.toggle("btn-primary",b.dataset.adminTab===tab));
+  try {
+    if(tab==="semesters") {
+      const rows=await tableRows("semesters");
+      box.innerHTML=`<div class="dashboard-card"><h3>Ajouter un semestre</h3><div class="field"><label>Nom</label><input id="newSemesterName" placeholder="Semestre 1"></div><div class="field"><label>Code</label><input id="newSemesterCode" placeholder="S1"></div><button class="btn btn-primary" id="saveSemester">Ajouter</button><div class="table-wrap"><table><thead><tr><th>Semestre</th><th>Code</th><th>Publication</th><th>Actions</th></tr></thead><tbody>${rows.map(x=>`<tr><td>${safeText(x.name)}</td><td>${safeText(x.code||"")}</td><td>${x.is_published?"Publié":"Masqué"}</td><td><div class="admin-actions"><button class="table-action" data-edit-sem="${x.id}">Modifier</button><button class="table-action" data-pub-table="semesters" data-pub-id="${x.id}" data-pub-value="${!x.is_published}">${x.is_published?"Masquer":"Publier"}</button><button class="table-action" data-delete-table="semesters" data-delete-id="${x.id}">Supprimer</button></div></td></tr>`).join("")||"<tr><td colspan='4'>Aucun semestre.</td></tr>"}</tbody></table></div></div>`;
+      $("saveSemester").onclick=async()=>{const name=$("newSemesterName").value.trim(),code=$("newSemesterCode").value.trim();if(!name)return adminMsg("Saisis le nom du semestre.","error");try{const {error}=await supabaseClient.from("semesters").insert({name,code,is_published:true});if(error)throw error;adminMsg("Semestre ajouté.","success");renderAdminTab("semesters");}catch(e){adminMsg(friendlyError(e),"error");}};
+    }
+    if(tab==="modules") {
+      const [sem,mods]=await Promise.all([tableRows("semesters"),tableRows("modules")]);
+      box.innerHTML=`<div class="dashboard-card"><h3>Ajouter un module</h3><div class="field"><label>Semestre</label><select id="newModuleSemester">${sem.map(x=>`<option value="${x.id}">${safeText(x.name)}</option>`).join("")}</select></div><div class="field"><label>Nom du module</label><input id="newModuleName" placeholder="Anatomie"></div><div class="field"><label>Description (facultatif)</label><input id="newModuleDescription" placeholder="Description courte"></div><div class="field"><label>URL de l’image (facultatif)</label><input id="newModuleImage" placeholder="https://..."></div><button class="btn btn-primary" id="saveModule">Ajouter le module</button><div class="table-wrap"><table><thead><tr><th>Module</th><th>Semestre</th><th>Publication</th><th>Actions</th></tr></thead><tbody>${mods.map(x=>`<tr><td>${safeText(x.name)}</td><td>${safeText(sem.find(y=>String(y.id)===String(x.semester_id))?.name||"—")}</td><td>${x.is_published?"Publié":"Masqué"}</td><td><div class="admin-actions"><button class="table-action" data-edit-module="${x.id}">Modifier</button><button class="table-action" data-pub-table="modules" data-pub-id="${x.id}" data-pub-value="${!x.is_published}">${x.is_published?"Masquer":"Publier"}</button><button class="table-action" data-delete-table="modules" data-delete-id="${x.id}">Supprimer</button></div></td></tr>`).join("")||"<tr><td colspan='4'>Aucun module.</td></tr>"}</tbody></table></div></div>`;
+      $("saveModule").onclick=async()=>{const name=$("newModuleName").value.trim();if(!name)return adminMsg("Saisis le nom du module.","error");try{const {error}=await supabaseClient.from("modules").insert({name,semester_id:Number($("newModuleSemester").value),description:$("newModuleDescription").value.trim(),image_url:$("newModuleImage").value.trim()||null,is_published:true});if(error)throw error;adminMsg("Module ajouté.","success");renderAdminTab("modules");}catch(e){adminMsg(friendlyError(e),"error");}};
+    }
+    if(tab==="courses") {
+      const [mods,courses]=await Promise.all([tableRows("modules"),tableRows("courses")]);
+      box.innerHTML=`<div class="dashboard-card"><h3>Ajouter un cours</h3><p class="muted">Le cours est uniquement un titre pour ranger les QCM/QCU. Aucun contenu de leçon ou PDF n’est ajouté.</p><div class="field"><label>Module</label><select id="newCourseModule">${mods.map(x=>`<option value="${x.id}">${safeText(x.name)}</option>`).join("")}</select></div><div class="field"><label>Titre du cours</label><input id="newCourseName" placeholder="Généralités sur la cellule"></div><button class="btn btn-primary" id="saveCourse">Ajouter le cours</button><div class="table-wrap"><table><thead><tr><th>Cours</th><th>Module</th><th>Publication</th><th>Actions</th></tr></thead><tbody>${courses.map(x=>`<tr><td>${safeText(x.name)}</td><td>${safeText(mods.find(y=>String(y.id)===String(x.module_id))?.name||"—")}</td><td>${x.is_published?"Publié":"Masqué"}</td><td><div class="admin-actions"><button class="table-action" data-edit-course="${x.id}">Modifier</button><button class="table-action" data-pub-table="courses" data-pub-id="${x.id}" data-pub-value="${!x.is_published}">${x.is_published?"Masquer":"Publier"}</button><button class="table-action" data-delete-table="courses" data-delete-id="${x.id}">Supprimer</button></div></td></tr>`).join("")||"<tr><td colspan='4'>Aucun cours.</td></tr>"}</tbody></table></div></div>`;
+      $("saveCourse").onclick=async()=>{const name=$("newCourseName").value.trim();if(!name)return adminMsg("Saisis le titre du cours.","error");try{const {error}=await supabaseClient.from("courses").insert({name,module_id:Number($("newCourseModule").value),is_published:true});if(error)throw error;adminMsg("Cours ajouté.","success");renderAdminTab("courses");}catch(e){adminMsg(friendlyError(e),"error");}};
+    }
+    if(tab==="questions") {
+      const [courses,qs]=await Promise.all([tableRows("courses"),tableRows("dreq_questions",q=>q.order("created_at",{ascending:false}))]);
+      box.innerHTML=`<div class="dashboard-card"><h3>Créer un QCM / QCU</h3><div class="field"><label>Cours</label><select id="newQuestionCourse">${courses.map(x=>`<option value="${x.id}">${safeText(x.name)}</option>`).join("")}</select></div><div class="field"><label>Type</label><select id="newQuestionType"><option value="QCU">QCU — une seule bonne réponse</option><option value="QCM">QCM — plusieurs bonnes réponses possibles</option></select></div><div class="field"><label>Énoncé de la question</label><textarea id="newQuestionText" rows="3"></textarea></div><div class="field"><label>Les cinq propositions — coche la/les bonne(s) réponse(s)</label>${["A","B","C","D","E"].map(k=>`<div style="display:grid;grid-template-columns:25px 1fr auto;gap:9px;align-items:center;margin:9px 0"><b>${k}</b><input id="option${k}" placeholder="Proposition ${k}" style="margin:0"><label style="display:flex;gap:6px;align-items:center;margin:0;white-space:nowrap"><input type="checkbox" id="correct${k}" style="width:auto"> Correcte</label></div>`).join("")}</div><div class="field"><label>Explication / correction</label><textarea id="newQuestionExplanation" rows="3"></textarea></div><button class="btn btn-primary" id="saveQuestion">Enregistrer la question</button></div><div class="dashboard-card"><h3>Questions existantes</h3><div class="table-wrap"><table><thead><tr><th>Question</th><th>Cours</th><th>État</th><th>Actions</th></tr></thead><tbody>${qs.map(q=>`<tr><td>${safeText(q.question_text).slice(0,100)}</td><td>${safeText(courses.find(c=>String(c.id)===String(q.course_id))?.name||"—")}</td><td>${q.is_published?"Publiée":"Masquée"}</td><td><div class="admin-actions"><button class="table-action" data-edit-question="${q.id}">Modifier</button><button class="table-action" data-pub-table="dreq_questions" data-pub-id="${q.id}" data-pub-value="${!q.is_published}">${q.is_published?"Masquer":"Publier"}</button><button class="table-action" data-delete-question="${q.id}">Supprimer</button></div></td></tr>`).join("")||"<tr><td colspan='4'>Aucune question.</td></tr>"}</tbody></table></div></div>`;
+      $("saveQuestion").onclick=async()=>{const course_id=Number($("newQuestionCourse").value),type=$("newQuestionType").value,question_text=$("newQuestionText").value.trim(),explanation=$("newQuestionExplanation").value.trim();const letters=["A","B","C","D","E"],options=letters.map(k=>({k,text:$("option"+k).value.trim(),correct:$("correct"+k).checked}));const correct=options.filter(x=>x.correct);if(!course_id||!question_text||options.some(x=>!x.text)||!correct.length)return adminMsg("Remplis la question et les cinq propositions, puis coche la/les bonne(s) réponse(s).","error");if(type==="QCU"&&correct.length!==1)return adminMsg("Un QCU doit avoir exactement une bonne réponse.","error");try{const q=await supabaseClient.from("dreq_questions").insert({course_id,type,question_text,explanation,is_published:true}).select("id").single();if(q.error)throw q.error;const a=await supabaseClient.from("dreq_answers").insert(options.map(x=>({question_id:q.data.id,answer_text:x.k+": "+x.text,is_correct:x.correct})));if(a.error)throw a.error;adminMsg("Question enregistrée avec ses cinq propositions.","success");renderAdminTab("questions");}catch(e){adminMsg("Enregistrement incomplet : "+friendlyError(e),"error");}};
+    }
+    if(tab==="access") {
+      const [users,sem,access]=await Promise.all([tableRows("profiles"),tableRows("semesters"),tableRows("student_semester_access")]);
+      const students=users.filter(x=>x.role!=="admin");
+      box.innerHTML=`<div class="dashboard-card"><h3>Gérer l’accès par semestre</h3><div class="field"><label>Étudiant</label><select id="accessStudent">${students.map(x=>`<option value="${x.id}">${safeText(x.full_name||x.email||x.id)}${x.email?" — "+safeText(x.email):""}</option>`).join("")}</select></div><div class="field"><label>Semestre</label><select id="accessSemester">${sem.map(x=>`<option value="${x.id}">${safeText(x.name)}</option>`).join("")}</select></div><button class="btn btn-primary" id="enableAccess">Activer l’accès</button><div class="table-wrap"><table><thead><tr><th>Étudiant</th><th>Semestre</th><th>Statut</th><th>Action</th></tr></thead><tbody>${access.map(x=>`<tr><td>${safeText(students.find(u=>u.id===x.student_id)?.full_name||x.student_id)}</td><td>${safeText(sem.find(s=>String(s.id)===String(x.semester_id))?.name||x.semester_id)}</td><td>${x.enabled?"Activé":"Désactivé"}</td><td><button class="table-action" data-toggle-access="${x.student_id}" data-access-sem="${x.semester_id}" data-access-next="${!x.enabled}">${x.enabled?"Désactiver":"Réactiver"}</button></td></tr>`).join("")||"<tr><td colspan='4'>Aucun accès configuré.</td></tr>"}</tbody></table></div></div>`;
+      $("enableAccess").onclick=async()=>{const student_id=$("accessStudent").value,semester_id=Number($("accessSemester").value);if(!student_id||!semester_id)return adminMsg("Choisis un étudiant et un semestre.","error");try{const {error}=await supabaseClient.from("student_semester_access").upsert({student_id,semester_id,enabled:true},{onConflict:"student_id,semester_id"});if(error)throw error;adminMsg("Accès au semestre activé.","success");renderAdminTab("access");}catch(e){adminMsg(friendlyError(e),"error");}};
+    }
+  } catch(error) { box.innerHTML="<p class='muted'>Erreur : "+safeText(friendlyError(error))+"</p>"; adminMsg(friendlyError(error),"error"); }
+}
+async function editPrompt(table,id,field,label,current){const value=prompt(label,current??"");if(value===null)return;try{await updateRow(table,id,{[field]:value.trim()});adminMsg("Modification enregistrée.","success");renderAdminTab($("adminWorkspace").dataset.tab);}catch(e){adminMsg(friendlyError(e),"error");}}
+async function deleteContentRow(table,id){if(!confirm("Confirmer la suppression ? Cette action peut être définitive."))return;try{if(table==="dreq_questions"){const {error:ae}=await supabaseClient.from("dreq_answers").delete().eq("question_id",id);if(ae)throw ae;}const {error}=await supabaseClient.from(table).delete().eq("id",id);if(error)throw error;adminMsg("Élément supprimé.","success");renderAdminTab($("adminWorkspace").dataset.tab||"semesters");}catch(e){adminMsg(friendlyError(e),"error");}}
+async function renderStudentSemesters(){
+ const box=$("studentWorkspace");box.innerHTML="<p class='muted'>Chargement des semestres autorisés…</p>";
+ try{const {data:access,error}=await supabaseClient.from("student_semester_access").select("semester_id").eq("student_id",(await supabaseClient.auth.getUser()).data.user.id).eq("enabled",true);if(error)throw error;const ids=(access||[]).map(x=>x.semester_id);if(!ids.length){box.innerHTML="<p class='muted'>Aucun semestre n’est activé pour le moment. Contacte l’administration pour demander ton accès.</p>";return;}const {data:sem,error:se}=await supabaseClient.from("semesters").select("id,name").in("id",ids);if(se)throw se;box.innerHTML=(sem||[]).map(x=>`<button class="btn btn-secondary" style="margin:6px" data-open-semester="${x.id}">${safeText(x.name)}</button>`).join("");}catch(e){box.innerHTML="<p class='muted'>Impossible de charger les semestres : "+safeText(friendlyError(e))+"</p>";}
+}
+async function openStudentSemester(id){window.__currentSemesterId=id;const box=$("studentWorkspace");try{const {data:mods,error}=await supabaseClient.from("modules").select("id,name,description,image_url").eq("semester_id",id).eq("is_published",true);if(error)throw error;box.innerHTML='<button class="table-action" id="backSem">← Semestres</button>'+(mods||[]).map(m=>`<div class="content-card">${m.image_url?`<img src="${safeText(m.image_url)}" alt="">`:''}<div><h3>${safeText(m.name)}</h3><p class="muted">${safeText(m.description||"")}</p><button class="btn btn-secondary" data-open-module="${m.id}">Voir les cours</button></div></div>`).join("")||"<p class='muted'>Aucun module publié.</p>";$("backSem").onclick=renderStudentSemesters;}catch(e){box.innerHTML="<p class='muted'>"+safeText(friendlyError(e))+"</p>";}}
+async function openStudentModule(id){const box=$("studentWorkspace");try{const {data:courses,error}=await supabaseClient.from("courses").select("id,name").eq("module_id",id).eq("is_published",true);if(error)throw error;box.innerHTML='<button class="table-action" id="backToModules">← Retour aux modules</button>'+(courses||[]).map(c=>`<div class="dashboard-card"><h3>${safeText(c.name)}</h3><button class="btn btn-primary" data-start-course="${c.id}">Commencer les QCM</button></div>`).join("")||"<p class='muted'>Aucun cours publié.</p>";$("backToModules").onclick=()=>openStudentSemester(window.__currentSemesterId);}catch(e){box.innerHTML="<p class='muted'>"+safeText(friendlyError(e))+"</p>";}}
+let dreqExam={questions:[],answers:{},started:0,timer:null,index:0,courseId:null,courseName:"",duration:30*60};
+function examHistoryKey(){return "dreq_exam_history_"+((window.__dreqUserId)||"guest");}
+function getExamHistory(){try{return JSON.parse(localStorage.getItem(examHistoryKey())||"[]");}catch{return[];}}
+function saveExamHistory(item){const rows=getExamHistory();rows.unshift(item);localStorage.setItem(examHistoryKey(),JSON.stringify(rows.slice(0,100)));}
+function renderExamQuestion(){const q=dreqExam.questions[dreqExam.index];const target=$("dreqExamCurrent");if(!q||!target)return;target.innerHTML=`<div class="muted">Question ${dreqExam.index+1} / ${dreqExam.questions.length} · ${safeText(q.type)}</div><h3>${safeText(q.question_text)}</h3>${q.options.map((a,j)=>`<label class="exam-option"><input type="${q.type==='QCU'?'radio':'checkbox'}" name="dq${q.id}" value="${j}" data-dq="${q.id}" ${((dreqExam.answers[q.id]||[]).includes(j))?'checked':''}><span>${safeText(a.answer_text)}</span></label>`).join('')}`;$("dreqExamNav").innerHTML=dreqExam.questions.map((x,i)=>`<button type="button" data-exam-index="${i}" class="${(dreqExam.answers[x.id]||[]).length?'answered':''}">${i+1}</button>`).join('');$("dreqExamProgress").textContent=`${Object.values(dreqExam.answers).filter(a=>a.length).length} question(s) répondue(s) sur ${dreqExam.questions.length}`;$("dreqPrev").disabled=dreqExam.index===0;$("dreqNext").textContent=dreqExam.index===dreqExam.questions.length-1?"Dernière question":"Suivante →";}
+async function startStudentExam(courseId){const box=$("studentWorkspace");try{const {data:qs,error}=await supabaseClient.from("dreq_questions").select("id,question_text,type,explanation").eq("course_id",courseId).eq("is_published",true).order("id");if(error)throw error;if(!qs?.length){box.innerHTML="<p class='muted'>Aucune question publiée dans ce cours.</p>";return;}const ids=qs.map(q=>q.id);const {data:ans,error:ae}=await supabaseClient.from("dreq_answers").select("id,question_id,answer_text,is_correct").in("question_id",ids);if(ae)throw ae;const valid=qs.map(q=>({...q,options:(ans||[]).filter(a=>a.question_id===q.id)})).filter(q=>q.options.length===5);if(!valid.length)throw new Error("Aucune question complète avec cinq propositions n’est disponible.");dreqExam={questions:valid,answers:{},started:Date.now(),timer:null,index:0,courseId,courseName:"",duration:30*60};box.innerHTML=`<div class="dashboard-card"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><h3>Examen QCM / QCU</h3><strong id="dreqClock">30:00</strong></div><p id="dreqExamProgress" class="muted"></p><div id="dreqExamNav" class="exam-nav"></div><div id="dreqExamCurrent" class="dashboard-card"></div><div class="admin-actions"><button class="btn btn-secondary" id="dreqPrev">← Précédente</button><button class="btn btn-secondary" id="dreqNext">Suivante →</button><button class="btn btn-primary" id="dreqFinish">Terminer l’examen</button></div></div>`;renderExamQuestion();$("dreqPrev").onclick=()=>{dreqExam.index=Math.max(0,dreqExam.index-1);renderExamQuestion();};$("dreqNext").onclick=()=>{dreqExam.index=Math.min(dreqExam.questions.length-1,dreqExam.index+1);renderExamQuestion();};$("dreqFinish").onclick=()=>finishStudentExam(false);const tick=()=>{const left=Math.max(0,dreqExam.duration-Math.floor((Date.now()-dreqExam.started)/1000));$("dreqClock").textContent=String(Math.floor(left/60)).padStart(2,"0")+":"+String(left%60).padStart(2,"0");if(left===0)finishStudentExam(true);};tick();dreqExam.timer=setInterval(tick,1000);}catch(e){box.innerHTML="<p class='muted'>Erreur : "+safeText(friendlyError(e))+"</p>";}}
+function finishStudentExam(auto=false){if(!dreqExam.questions.length)return;clearInterval(dreqExam.timer);const review=dreqExam.questions.map((q,i)=>{const chosen=dreqExam.answers[q.id]||[],correct=q.options.map((o,j)=>o.is_correct?j:null).filter(x=>x!==null),ok=chosen.length===correct.length&&chosen.every(x=>correct.includes(x));return{q,i,chosen,correct,ok};});const score=review.filter(x=>x.ok).length,pct=Math.round(score/review.length*100),elapsed=Math.round((Date.now()-dreqExam.started)/1000);saveExamHistory({date:new Date().toISOString(),courseId:dreqExam.courseId,score,total:review.length,percent:pct,seconds:elapsed,errors:review.filter(x=>!x.ok).map(x=>x.q.id)});const box=$("studentWorkspace");box.innerHTML=`<div class="dashboard-card"><h3>${auto?"Temps écoulé — résultat":"Résultat de ton examen"}</h3><div style="font-size:36px;font-weight:900;color:var(--accent)">${score}/${review.length}</div><p class="muted">${pct}% · ${Math.floor(elapsed/60)} min ${elapsed%60} s</p><div class="progress"><span style="width:${pct}%"></span></div><h3>Navigation des corrections</h3><div class="exam-nav">${review.map(x=>`<button type="button" class="${x.ok?'answered':''}" data-review="${x.i}">${x.i+1} ${x.ok?'✓':'✕'}</button>`).join('')}</div><div id="dreqReview" class="dashboard-card">Choisis un numéro pour afficher la correction.</div><button class="btn btn-secondary" id="dreqBack">Retour aux semestres</button></div>`;box.querySelectorAll('[data-review]').forEach(b=>b.onclick=()=>{const x=review[Number(b.dataset.review)];$('dreqReview').innerHTML=`<b>Question ${x.i+1} · ${x.ok?'Correcte':'Incorrecte'}</b><p>${safeText(x.q.question_text)}</p><p><b>Ta réponse :</b> ${x.chosen.map(j=>safeText(x.q.options[j]?.answer_text||'')).join(' ; ')||'Aucune réponse'}</p><p><b>Bonne réponse :</b> ${x.correct.map(j=>safeText(x.q.options[j]?.answer_text||'')).join(' ; ')}</p><p><b>Explication :</b> ${safeText(x.q.explanation||'Non renseignée')}</p>`;});$('dreqBack').onclick=renderStudentSemesters;}
+function renderStudentHistory(){const rows=getExamHistory();const box=$("studentWorkspace");box.innerHTML=`<div class="dashboard-card"><h3>Historique de mes examens</h3><div class="stat-grid"><div class="stat-box"><strong>${rows.length}</strong><span class="muted">Examens</span></div><div class="stat-box"><strong>${rows.length?Math.round(rows.reduce((a,x)=>a+x.percent,0)/rows.length):0}%</strong><span class="muted">Moyenne</span></div><div class="stat-box"><strong>${rows.reduce((a,x)=>a+x.seconds,0)>0?Math.round(rows.reduce((a,x)=>a+x.seconds,0)/60):0}</strong><span class="muted">Minutes</span></div></div>${rows.map(x=>`<div class="dashboard-card"><b>${safeText(x.score)}/${safeText(x.total)} · ${safeText(x.percent)}%</b><p class="muted">${new Date(x.date).toLocaleString('fr-FR')} · ${Math.floor(x.seconds/60)} min</p></div>`).join('')||'<p class="muted">Aucun examen terminé sur cet appareil pour le moment.</p>'}</div>`;}
+document.addEventListener("click",event=>{const tab=event.target.closest("[data-admin-tab]");if(tab)renderAdminTab(tab.dataset.adminTab);const del=event.target.closest("[data-delete-table]");if(del)deleteContentRow(del.dataset.deleteTable,del.dataset.deleteId);const delq=event.target.closest("[data-delete-question]");if(delq)deleteContentRow("dreq_questions",delq.dataset.deleteQuestion);const pub=event.target.closest("[data-pub-table]");if(pub){updateRow(pub.dataset.pubTable,pub.dataset.pubId,{is_published:pub.dataset.pubValue==="true"}).then(()=>{adminMsg("Publication mise à jour.","success");renderAdminTab($("adminWorkspace").dataset.tab);}).catch(e=>adminMsg(friendlyError(e),"error"));}const editS=event.target.closest("[data-edit-sem]");if(editS){const rowId=editS.dataset.editSem;tableRows("semesters").then(rows=>{const x=rows.find(r=>String(r.id)===rowId);return editPrompt("semesters",rowId,"name","Nouveau nom du semestre",x?.name);}).catch(e=>adminMsg(friendlyError(e),"error"));}const editM=event.target.closest("[data-edit-module]");if(editM){const rowId=editM.dataset.editModule;tableRows("modules").then(rows=>{const x=rows.find(r=>String(r.id)===rowId);return editPrompt("modules",rowId,"name","Nouveau nom du module",x?.name);}).catch(e=>adminMsg(friendlyError(e),"error"));}const editC=event.target.closest("[data-edit-course]");if(editC){const rowId=editC.dataset.editCourse;tableRows("courses").then(rows=>{const x=rows.find(r=>String(r.id)===rowId);return editPrompt("courses",rowId,"name","Nouveau titre du cours",x?.name);}).catch(e=>adminMsg(friendlyError(e),"error"));}const editQ=event.target.closest("[data-edit-question]");if(editQ){const rowId=editQ.dataset.editQuestion;tableRows("dreq_questions").then(rows=>{const x=rows.find(r=>String(r.id)===rowId);return editPrompt("dreq_questions",rowId,"question_text","Modifier l’énoncé",x?.question_text);}).catch(e=>adminMsg(friendlyError(e),"error"));}const toggle=event.target.closest("[data-toggle-access]");if(toggle){supabaseClient.from("student_semester_access").upsert({student_id:toggle.dataset.toggleAccess,semester_id:Number(toggle.dataset.accessSem),enabled:toggle.dataset.accessNext==="true"},{onConflict:"student_id,semester_id"}).then(({error})=>{if(error)throw error;adminMsg("Accès mis à jour.","success");renderAdminTab("access");}).catch(e=>adminMsg(friendlyError(e),"error"));}const sem=event.target.closest("[data-open-semester]");if(sem)openStudentSemester(sem.dataset.openSemester);const mod=event.target.closest("[data-open-module]");if(mod)openStudentModule(mod.dataset.openModule);const course=event.target.closest("[data-start-course]");if(course)startStudentExam(course.dataset.startCourse);const ex=event.target.closest("[data-exam-index]");if(ex){dreqExam.index=Number(ex.dataset.examIndex);renderExamQuestion();}});
+document.addEventListener("change",event=>{const el=event.target.closest("[data-dq]");if(!el)return;const id=el.dataset.dq;if(el.type==="radio")dreqExam.answers[id]=[Number(el.value)];else{const arr=dreqExam.answers[id]||[];dreqExam.answers[id]=el.checked?[...arr,Number(el.value)]:arr.filter(x=>x!==Number(el.value));}renderExamQuestion();});
+
+async function init() {
+  $("year").textContent = new Date().getFullYear();
+  const savedTheme=localStorage.getItem("dreq_theme");if(savedTheme==="light")document.body.classList.add("light-theme");
+  $("themeToggle").addEventListener("click",()=>{document.body.classList.toggle("light-theme");localStorage.setItem("dreq_theme",document.body.classList.contains("light-theme")?"light":"dark");});
+
+  if (!window.supabase) {
+    showMessage(
+      $("authMessage"),
+      "Le service de connexion n’a pas pu être chargé. Actualise la page et vérifie ta connexion Internet.",
+      "error"
+    );
+    return;
+  }
+
+  if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
+    showMessage(
+      $("authMessage"),
+      "La configuration Supabase est incomplète.",
+      "error"
+    );
+    return;
+  }
+
+  supabaseClient = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_PUBLISHABLE_KEY
+  );
+
+  $("passwordHelpLink").addEventListener("click", (event) => {
+    event.preventDefault();
+
+    if (!/^212\d{9}$/.test(ADMIN_WHATSAPP_NUMBER)) {
+      showMessage(
+        $("authMessage"),
+        "Le contact WhatsApp de l’administration n’est pas encore configuré dans le code.",
+        "error"
+      );
+      return;
+    }
+
+    const email = $("loginEmail").value.trim();
+    const message = email
+      ? "Bonjour, j’ai besoin d’aide pour accéder à mon compte DREQ. Mon e-mail : " + email + "."
+      : "Bonjour, j’ai besoin d’aide pour accéder à mon compte DREQ. Pouvez-vous vérifier mon compte ?";
+    window.open(
+      "https://wa.me/" + ADMIN_WHATSAPP_NUMBER + "?text=" + encodeURIComponent(message),
+      "_blank",
+      "noopener,noreferrer"
+    );
+  });
+
+  $("loginForm").addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const button = $("loginButton");
+    setBusy(button, true, "Connexion…");
+
+    try {
+      const {data, error} = await supabaseClient.auth.signInWithPassword({
+        email: $("loginEmail").value.trim(),
+        password: $("loginPassword").value
+      });
+
+      if (error) throw error;
+      if (!data.user) throw new Error("Aucun utilisateur retourné par Supabase.");
+
+      showMessage($("authMessage"), "Connexion réussie.", "success");
+      await showDashboard(data.user);
+
+    } catch (error) {
+      showMessage($("authMessage"), friendlyError(error), "error");
+    } finally {
+      setBusy(button, false, "Se connecter");
+    }
+  });
+
+  $("signupForm").addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const button = $("signupButton");
+    setBusy(button, true, "Création du compte…");
+
+    try {
+      const fullName = $("signupName").value.trim();
+      const email = $("signupEmail").value.trim();
+      const password = $("signupPassword").value;
+
+      if (fullName.length < 2)
+        throw new Error("Saisis ton nom complet.");
+
+      if (password.length < 8)
+        throw new Error("Le mot de passe doit contenir au moins 8 caractères.");
+
+      const {data, error} = await supabaseClient.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {full_name:fullName}
+        }
+      });
+
+      if (error) throw error;
+
+      if (data.session && data.user) {
+        showMessage(
+          $("authMessage"),
+          "Compte créé. Chargement de ton espace…",
+          "success"
+        );
+        await showDashboard(data.user);
+      } else {
+        showMessage(
+          $("authMessage"),
+          "Demande de création envoyée. Si la confirmation e-mail est activée dans Supabase, confirme ton adresse avant de te connecter.",
+          "success"
+        );
+      }
+
+    } catch (error) {
+      showMessage($("authMessage"), friendlyError(error), "error");
+    } finally {
+      setBusy(button, false, "Créer mon compte");
+    }
+  });
+
+  $("logoutButton").addEventListener("click", async () => {
+    const {error} = await supabaseClient.auth.signOut();
+
+    if (error) {
+      showMessage($("dashboardMessage"), friendlyError(error), "error");
+      return;
+    }
+
+    $("loginPassword").value = "";
+    showLanding();
+    showMessage($("authMessage"), "Tu es déconnecté.", "success");
+  });
+
+
+  document.querySelectorAll("[data-focus='signup']").forEach(link => {
+    link.addEventListener("click", () => {
+      setTimeout(() => $("signupName").focus({preventScroll:true}), 250);
+    });
+  });
+
+  const {data:{session}, error} = await supabaseClient.auth.getSession();
+
+  if (error) {
+    showMessage($("authMessage"), friendlyError(error), "error");
+    return;
+  }
+
+  if (session?.user)
+    await showDashboard(session.user);
+}
+
+init();
+</script>
+</body>
+</html>
