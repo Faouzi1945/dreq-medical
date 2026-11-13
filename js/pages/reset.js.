@@ -1,0 +1,48 @@
+
+// Page affichée après un clic sur le lien "mot de passe oublié" reçu par e-mail.
+import { state, updatePassword } from '../api/auth.js';
+import { mountAuth, showFormError, clearFormError, bindPasswordToggles } from '../ui.js';
+import { frError, setBusy, toast } from '../utils.js';
+import { navigate } from '../router.js';
+
+export async function render() {
+  const el = mountAuth();
+  if (!state.user) {
+    el.innerHTML = `
+      <h1>Lien expiré</h1>
+      <p class="muted">Ce lien n'est plus valable. Demandez-en un nouveau.</p>
+      <a class="btn btn-block" href="#/forgot">Recevoir un nouveau lien</a>`;
+    return;
+  }
+  el.innerHTML = `
+    <h1>Nouveau mot de passe</h1>
+    <p class="muted">Choisissez un mot de passe d'au moins 8 caractères.</p>
+    <form id="f" novalidate>
+      <div class="field">
+        <label class="label" for="pw">Nouveau mot de passe</label>
+        <div class="input-wrap">
+          <input class="input" id="pw" type="password" autocomplete="new-password" required minlength="8">
+          <button class="toggle-pw" type="button" aria-label="Afficher ou masquer le mot de passe"></button>
+        </div>
+      </div>
+      <button class="btn btn-block" type="submit">Enregistrer</button>
+    </form>`;
+  bindPasswordToggles(el);
+
+  const form = el.querySelector('#f');
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    clearFormError(form);
+    if (form.pw.value.length < 8) return showFormError(form, 'Le mot de passe doit contenir au moins 8 caractères.');
+    const btn = form.querySelector('button[type="submit"]');
+    setBusy(btn, true, 'Enregistrement…');
+    try {
+      await updatePassword(form.pw.value);
+      toast('Mot de passe modifié.', 'ok');
+      navigate('/');
+    } catch (err) {
+      showFormError(form, frError(err));
+      setBusy(btn, false);
+    }
+  });
+}
